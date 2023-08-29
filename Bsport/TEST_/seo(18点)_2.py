@@ -27,8 +27,8 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
 day = 0
-pages_user = 100
-pages_fircharge = 50
+pages_user = 150
+pages_fircharge = 60
 with open(r'C:\Users\User\Desktop\SEO\SEO代码新 0903到期.txt','r') as f:
     access_token = f.read()
 # 启动控制台
@@ -138,7 +138,7 @@ for i in range(3):
 data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx')
 data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx','趋势分析')
 daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx','数据(12点)')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx','数据(12点)_2')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
@@ -252,8 +252,7 @@ print('用户列表行列:',user.shape)
 user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')]
 print('去重后：',user.shape)
 
-#  开始处理数据---------------------------------------------
-print('开始处理shuju')
+print('开始处理shuju...')
 shuju = pd.DataFrame({'人员':['Paddy', 'Tony', 'Max', 'Martin', 'Zed', 'Hugo', 'Aber', 'DK', 'Ben','当日汇总'],
                       '日期':(datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'),
                       '时间':(datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%H:%M'),
@@ -261,26 +260,19 @@ shuju = pd.DataFrame({'人员':['Paddy', 'Tony', 'Max', 'Martin', 'Zed', 'Hugo',
                       '接收IP':0,
                       '对比昨天(总IP)':0,
                       '对比前3天均值(总IP)':0,
-                      '对比前5天均值(总IP)':0,
                       '对比前7天均值(总IP)':0,
                       '对比昨天(接收IP)':0,
                       '对比前3天均值(接收IP)':0,
-                      '对比前5天均值(接收IP)':0,
                       '对比前7天均值(接收IP)':0,
                       '对比昨天(总注册)':0,
                       '对比前3天均值(总注册)':0,
-                      '对比前5天均值(总注册)':0,
                       '对比前7天均值(总注册)':0,
                       '对比昨天(总开户)':0,
                       '对比前3天均值(总开户)':0,
-                      '对比前5天均值(总开户)':0,
                       '对比前7天均值(总开户)':0})
 
-
 shuju.set_index('人员',inplace = True)
-
 data_today['IP']=pd.to_numeric(data_today['IP'],errors='coerce').replace(np.nan,0).astype('int64')
-
 grp=data_today.groupby('网站名(domain)').agg({'IP':sum})
 try:
     shuju.loc['Paddy','发送IP']=grp.loc['paddy.com','IP']
@@ -368,17 +360,6 @@ grpCHARGE= grpCHARGE.rename(columns={'seo变化数据团队':'人员2'})
 shuju = pd.merge(shuju,grpCHARGE,how='left',on='人员2')
 shuju['转化率(%)'] = round(shuju['开户']/shuju['注册']*100,2)
 
-merge_charge['注册时间']= pd.to_datetime(merge_charge['注册时间'])
-merge_charge['交易时间']= pd.to_datetime(merge_charge['交易时间'])
-grp3  = merge_charge[merge_charge['注册时间'].dt.strftime('%Y/%m/%d')==merge_charge['交易时间'].dt.strftime('%Y/%m/%d')].groupby('seo变化数据团队').agg({'seo变化数据团队':len})
-grp3.rename(columns = {'seo变化数据团队':'当日注册并开户'},inplace=True)
-grp3.reset_index(inplace=True)
-grp3['seo变化数据团队'] =grp3['seo变化数据团队'].str.lower()
-grp3.rename(columns = {'seo变化数据团队':'人员2'},inplace=True)
-# 第3次merge
-shuju  = pd.merge(shuju,grp3,how='left',on='人员2')
-shuju['当日注册激活率(%)'] = round(shuju['当日注册并开户']/shuju['注册']*100,2)
-
 #------------
 # his_data  = pd.read_csv(r'C:\Users\User\Desktop\SEO\SEO每日更新_814.csv',encoding='gbk')
 his_data['日期']= pd.to_datetime(his_data['日期'])
@@ -392,103 +373,62 @@ be_data.sort_index(inplace=True)
 
 be3_data = his_data[his_data['日期']>=(shuju['日期'][0]+datetime.timedelta(days=-3))]
 be3_data = be3_data.groupby('人员').mean()[:-1]
-be5_data = his_data[his_data['日期']>=(shuju['日期'][0]+datetime.timedelta(days=-5))]
-be5_data = be5_data.groupby('人员').mean()[:-1]
+
 be7_data = his_data[his_data['日期']>=(shuju['日期'][0]+datetime.timedelta(days=-7))]
 be7_data = be7_data.groupby('人员').mean()[:-1]
 
 shuju['对比昨天(总IP)']=shuju['发送IP']-be_data['总IP']
 shuju['对比前3天均值(总IP)']= shuju['发送IP']-be3_data['总IP']
-shuju['对比前5天均值(总IP)']= shuju['发送IP']-be5_data['总IP']
 shuju['对比前7天均值(总IP)']= shuju['发送IP']-be7_data['总IP']
 
 shuju['对比昨天(接收IP)']=shuju['接收IP']-be_data['接收IP']
 shuju['对比前3天均值(接收IP)']= shuju['接收IP']-be3_data['接收IP']
-shuju['对比前5天均值(接收IP)']= shuju['接收IP']-be5_data['接收IP']
 shuju['对比前7天均值(接收IP)']= shuju['接收IP']-be7_data['接收IP']
 
 shuju['对比昨天(总注册)']=shuju['注册']-be_data['注册']
 shuju['对比前3天均值(总注册)']= shuju['注册']-be3_data['注册']
-shuju['对比前5天均值(总注册)']= shuju['注册']-be5_data['注册']
 shuju['对比前7天均值(总注册)']= shuju['注册']-be7_data['注册']
 
 shuju['对比昨天(总开户)']=shuju['开户']-be_data['开户']
 shuju['对比前3天均值(总开户)']= shuju['开户']-be3_data['开户']
-shuju['对比前5天均值(总开户)']= shuju['开户']-be5_data['开户']
 shuju['对比前7天均值(总开户)']= shuju['开户']-be7_data['开户']
 
-shuju = shuju.iloc[:,:5].join(shuju.iloc[:,-6:]).join(shuju.iloc[:,5:-6])
+shuju = shuju.iloc[:,:5].join(shuju.iloc[:,-4:]).join(shuju.iloc[:,5:-4])
 shuju.fillna(0,inplace=True)
 
-shuju.loc[:,'对比昨天(总IP)':'对比前7天均值(总开户)']=shuju.loc[:,'对比昨天(总IP)':'对比前7天均值(总开户)'].astype('int64')
+shuju.loc[:,'对比昨天(总IP)':]=shuju.loc[:,'对比昨天(总IP)':].astype('int64')
 shuju['注册'] = shuju['注册'].astype('int64')
 shuju['开户'] = shuju['开户'].astype('int64')
-shuju['当日注册并开户'] = shuju['当日注册并开户'].astype('int64')
 
-for i in shuju.iloc[:,4:].columns:
+for i in shuju.iloc[:,5:].columns:
     shuju.loc['当日汇总',i]=sum(shuju[i])
-shuju.loc['当日汇总','接收IP']=shuju['接收IP'][:-1].sum()
+
 # 重置三个率
 shuju.loc['当日汇总','注册率(%)']=round(shuju.loc['当日汇总','注册']/shuju.loc['当日汇总','发送IP']*100,2)
 shuju.loc['当日汇总','转化率(%)']=round(shuju.loc['当日汇总','开户']/shuju.loc['当日汇总','注册']*100,2)
-shuju.loc['当日汇总','当日注册激活率(%)']=round(shuju.loc['当日汇总','当日注册并开户']/shuju.loc['当日汇总','注册']*100,2)
 
 shuju.insert(3,'人员',shuju.index)
 shuju.drop('人员2',inplace=True,axis=1)
 print('shuju处理完成。。。。')
 
-# 开始计算ip历史数据
-# print('开始计算ip历史数据。。。。')
-#
-# dic_ip ={'日期':(datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'),
-#          '人员':[i for i in ['Paddy', 'Tony', 'Max', 'Martin', 'Zed', 'Hugo', 'Aber', 'DK', 'Ben'] for j in range(7)],'指标':['接收率(%)','发送IP数','接收IP数','注册','注册率(%)','开户','开户转化率(%)']*9, '总计':0, '0-2':0, '2-4':0, '4-6':0, '6-8':0, '8-10':0, '10-12':0, '12-14':0, '14-16':0, '16-18':0, '18-20':0, '20-22':0, '22-24':0}
-# ip_data = pd.DataFrame(dic_ip)
-# user['注册时间']=pd.to_datetime(user['注册时间'])
-# hour_user= pd.merge(user,daili,how = 'left',left_on='代理',right_on='代理线')
-# hour_user['小时数']= hour_user['注册时间'].dt.hour
-# hour_user['seo变化数据团队'] = hour_user['seo变化数据团队'].str.lower()
-# firChargeUser['注册时间']=pd.to_datetime(firChargeUser['注册时间'])
-# hour_charge = pd.merge(firChargeUser,daili,how='left',left_on='所属代理',right_on='代理线')
-# hour_charge['小时数']= hour_charge['注册时间'].dt.hour
-# hour_charge['seo变化数据团队'] = hour_charge['seo变化数据团队'].str.lower()
-#
-# data_2_today['PV'] = pd.to_numeric(data_2_today['PV'],errors='coerce',downcast='integer')
-# data_2_today['UV'] = pd.to_numeric(data_2_today['UV'],errors='coerce',downcast='integer')
-# data_2_today['IP'] = pd.to_numeric(data_2_today['IP'],errors='coerce',downcast='integer')
-#
-# # 循环方式
-# name_list = ['Martin','Paddy', 'Tony', 'Max',  'Zed', 'Hugo', 'Aber', 'DK', 'Ben']
-# hour_list = ['0-2', '2-4', '4-6', '6-8', '8-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-22', '22-24']
-# web_dic={'Martin':['redquan.com','martin.bty'],
-#          'Paddy':['paddy.com','paddy.bty'],
-#          'Tony':['tonyb.com','tony.bty'],
-#          'Max':['mulu.com','max.bty'],
-#          'Zed':['zed.com','zed.bty'],
-#          'Hugo':['hugo.com','hugo.bty'],
-#          'Aber':['aber.com','aber.bty'],
-#          'DK':['dk.com','dk.bty'],
-#          'Ben':['ben.com','ben.bty']}
-#
-# for name in name_list:
-#     for h in hour_list:
-#         if name in ['Tony', 'Aber', 'DK', 'Ben']:
-#             ip_data.loc[(ip_data['人员'] ==name) & (ip_data['指标']=='发送IP数'),h] =data_2_today[data_2_today['网站名(domain)'].str.contains(web_dic[name][0])&(data_2_today['时间']>=int(h.split('-')[0])) & (data_2_today['时间']<int(h.split('-')[1]))]['IP'].sum() // 2
-#         else:
-#             ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),h] =data_2_today[data_2_today['网站名(domain)'].str.contains(web_dic[name][0])&(data_2_today['时间']>=int(h.split('-')[0])) & (data_2_today['时间']<int(h.split('-')[1]))]['IP'].sum()
-#         ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),h] =data_2_today[data_2_today['网站名(domain)'].str.contains(web_dic[name][1])&(data_2_today['时间']>=int(h.split('-')[0])) & (data_2_today['时间']<int(h.split('-')[1]))]['IP'].sum()
-#         ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),h] =len(hour_user[(hour_user['seo变化数据团队']==name.lower()) & (hour_user['小时数']>=int(h.split('-')[0]))& (hour_user['小时数']<int(h.split('-')[1]))])
-#         ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册率(%)'),h]=round(len(hour_user[(hour_user['seo变化数据团队']==name.lower()) & (hour_user['小时数']>=int(h.split('-')[0]))& (hour_user['小时数']<int(h.split('-')[1]))])/ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),h].iloc[0]*100,2)
-#         ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户'),h] =len(hour_charge[(hour_charge['seo变化数据团队']==name.lower()) & (hour_charge['小时数']>=int(h.split('-')[0]))& (hour_charge['小时数']<int(h.split('-')[1]))])
-#         ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户转化率(%)'),h]=round(len(hour_charge[(hour_charge['seo变化数据团队']==name.lower()) & (hour_charge['小时数']>=int(h.split('-')[0]))& (hour_charge['小时数']<int(h.split('-')[1]))])/ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),h].iloc[0]*100,2)
-#         ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收率(%)'),h] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),h].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),h].iloc[0]*100,2)
-#
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),'总计'] =ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),'0-2':].T.sum()
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'] =ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'0-2':].T.sum()
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'] =ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'0-2':].T.sum()
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户'),'总计'] =ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户'),'0-2':].T.sum()
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户转化率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'].iloc[0]*100,2)
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'].iloc[0]*100,2)
-#     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),'总计'].iloc[0]*100,2)
+# 重置历史数据
+be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))]
+
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','w') as f:
+    f.write('#SEO激活监控18点\n')
+    f.write(f'截止今日18点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
+            f'转化率 : {shuju.loc["当日汇总","转化率(%)"]}%\n')
+    f.write(f"对比昨日18点,   注册:  {be_data.loc[be_data['人员']=='当日汇总','注册'].values[0]} ,开户:  {be_data.loc[be_data['人员']=='当日汇总','开户'].values[0]}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
+    f.write(f'同比昨日变化,   注册:  {shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0]} ,开户:  {shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0]}，整体转化率 : {round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)}%\n')
+    f.write('\n')
+    f.write(f'人员下降指标如下：\n')
+    for i in range(9):
+        f.write(shuju.iloc[i,:]['人员'])
+        f.write(', ')
+        f.write(str(list(shuju.iloc[:,11:].iloc[i,:][shuju.iloc[:,11:].iloc[i,:]<0].index))+'\n')
+    f.write('\n')
+    f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
+
 # 增加行末表头
 header_shuju = pd.DataFrame({'日期':'日期',
                              '时间':'时间',
@@ -499,49 +439,37 @@ header_shuju = pd.DataFrame({'日期':'日期',
                              '注册率(%)':'注册率(%)',
                              '开户':'开户',
                              '转化率(%)':'转化率(%)',
-                             '当日注册并开户':'当日注册并开户',
-                             '当日注册激活率(%)':'当日注册激活率(%)',
                              '对比昨天(总IP)':'对比昨天(总IP)',
                              '对比前3天均值(总IP)':'对比前3天均值(总IP)',
-                             '对比前5天均值(总IP)':'对比前5天均值(总IP)',
                              '对比前7天均值(总IP)':'对比前7天均值(总IP)',
                              '对比昨天(接收IP)':'对比昨天(接收IP)',
                              '对比前3天均值(接收IP)':'对比前3天均值(接收IP)',
-                             '对比前5天均值(接收IP)':'对比前5天均值(接收IP)',
                              '对比前7天均值(接收IP)':'对比前7天均值(接收IP)',
                              '对比昨天(总注册)':'对比昨天(总注册)',
                              '对比前3天均值(总注册)':'对比前3天均值(总注册)',
-                             '对比前5天均值(总注册)':'对比前5天均值(总注册)',
                              '对比前7天均值(总注册)':'对比前7天均值(总注册)',
                              '对比昨天(总开户)':'对比昨天(总开户)',
                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
-                             '对比前5天均值(总开户)':'对比前5天均值(总开户)',
                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
 shuju = shuju.append(header_shuju)
-header_ip =pd.DataFrame({'日期':'日期',
-                         '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2', '2-4':'2-4', '4-6':'4-6', '6-8':'6-8', '8-10':'8-10', '10-12':'10-12', '12-14':'12-14', '14-16':'14-16', '16-18':'16-18', '18-20':'18-20', '20-22':'20-22', '22-24':'22-24'},index=[0])
-# ip_data= ip_data.append(header_ip)
-# 更新每日数据--------------------------------------------------------------------------------------------------
+
+# 保存数据
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 
-sheet_shuju = book.sheets['数据(12点)']
+sheet_shuju = book.sheets['数据(18点)_2']
 row_shuju = sheet_shuju.used_range.last_cell.row
-#
-# sheet_ip =  book.sheets['ip历史']
-# row_ip = sheet_ip.used_range.last_cell.row
-#
+
 sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = shuju
 # sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_data
 book.save()
 book.close()
-#
+
 # # 添加条件格式
 wb = load_workbook(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
-ws = wb['数据(12点)']
-# redFill = PatternFill(start_color='EE1111',end_color='EE1111',fill_type='solid')
+ws = wb['数据(18点)_2']
 redFill = Font(color='FF0000')
-ws.conditional_formatting.add(f'K{row_shuju +1}:AA{row_shuju+10}',
+ws.conditional_formatting.add(f'K{row_shuju +1}:U{row_shuju+10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
                                                          font=redFill))
@@ -549,12 +477,12 @@ wb.save(filename=r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 wb.close()
 # # 保存截图
 book2 = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
-sheet2_shuju = book2.sheets['数据(12点)']
+sheet2_shuju = book2.sheets['数据(18点)_2']
 # sheet2_ip =  book2.sheets['ip历史']
-range_shuju = sheet2_shuju.range(f'A{row_shuju+1}:AA{row_shuju+11}')
+range_shuju = sheet2_shuju.range(f'A{row_shuju+1}:U{row_shuju+11}')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
-img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h).png')  # 保存图片
+img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-2.png')  # 保存图片
 # pyperclip.copy('')
 # # 删除行末表头
 def delete_row(sheet, row_index):
@@ -563,28 +491,18 @@ def delete_row(sheet, row_index):
 delete_row(sheet2_shuju,row_shuju+11)
 time.sleep(2)
 #
-# range_IP = sheet2_ip.range(f'A{row_ip+1}:P{row_ip+64}')
-# range_IP.api.CopyPicture()
-# img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
-# img_IP.save(r'C:\Users\User\Desktop\SEO\截图文件\IP.png')  # 保存图片
-# delete_row(sheet2_ip,row_ip+64)
-# time.sleep(2)
 book2.save()
 book2.close()
 app.quit()
 # # 发送到群
-be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))]
-bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h).png','rb'))
-bot_DA.send_message(-812533282,f'截止今日12点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
-                               f'转化率: {shuju.loc["当日汇总","转化率(%)"]}%')
-bot_DA.send_message(-812533282,f'对比昨日12点,   注册:  {be_data.loc["当日汇总","注册"]} ,开户:  {be_data.loc["当日汇总","开户"]}，整体'
-                               f'转化率: {shuju.loc["当日汇总","转化率(%)"]-be_data.loc["当日汇总","转化率(%)"]}%')
-bot_DA.send_message(-812533282,f'同比昨日变化,   注册:  {shuju.loc["当日汇总","注册"]-be_data.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]-be_data.loc["当日汇总","开户"]}，整体'
-                               f'转化率: {be_data.loc["当日汇总","转化率(%)"]}%')
-bot_DA.send_message(-812533282,f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
-bot_DA.stop_polling()
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','r') as f:
+    text = f.read()
 
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-2.png','rb'))
+# bot_DA.send_message(-677235937,'#SEO激活监控18点')
+bot_DA.send_message(-677235937,text)
+bot_DA.stop_polling()
 # 查看
 print(shuju)
-# print(ip_data)
+

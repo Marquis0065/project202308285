@@ -428,6 +428,7 @@ shuju['当日注册并开户'] = shuju['当日注册并开户'].astype('int64')
 
 for i in shuju.iloc[:,4:].columns:
     shuju.loc['当日汇总',i]=sum(shuju[i])
+shuju.loc['当日汇总','接收IP']=shuju['接收IP'][:-1].sum()
 # 重置三个率
 shuju.loc['当日汇总','注册率(%)']=round(shuju.loc['当日汇总','注册']/shuju.loc['当日汇总','发送IP']*100,2)
 shuju.loc['当日汇总','转化率(%)']=round(shuju.loc['当日汇总','开户']/shuju.loc['当日汇总','注册']*100,2)
