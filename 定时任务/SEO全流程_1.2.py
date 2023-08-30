@@ -128,7 +128,7 @@ for i in range(3):
     if not os.path.exists(file_path):
         process.terminate()
         process.wait()
-        print(f'第{i}次重新运行jar包，请再耐心等等。。')
+        print(f'第{i+1}次重新运行jar包，请再耐心等等。。')
         fun_jar()
         time.sleep(300)
         continue
@@ -408,6 +408,12 @@ shuju['对比前7天均值(总开户)']= shuju['开户']-be7_data['开户']
 
 shuju = shuju.iloc[:,:4].join(shuju.iloc[:,-6:]).join(shuju.iloc[:,4:-6])
 shuju.fillna(0,inplace=True)
+for name in shuju.index:
+    if shuju.loc[name,'注册']==0:
+        shuju.loc[name,'转化率(%)']=shuju.loc[name,'开户']*100
+        shuju.loc[name,'当日注册激活率(%)']=shuju.loc[name,'当日注册并开户']*100
+    if shuju.loc[name,'发送IP']==0:
+        shuju.loc[name,'注册率(%)']=shuju.loc[name,'接受IP']*100
 
 shuju.loc[:,'对比昨天(总IP)':'对比前7天均值(总开户)']=shuju.loc[:,'对比昨天(总IP)':'对比前7天均值(总开户)'].astype('int64')
 shuju['注册'] = shuju['注册'].astype('int64')
@@ -502,8 +508,14 @@ header_shuju = pd.DataFrame({'人员':'人员',
                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
 shuju = shuju.append(header_shuju)
 header_ip =pd.DataFrame({'日期':'日期',
-                         '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2', '2-4':'2-4', '4-6':'4-6', '6-8':'6-8', '8-10':'8-10', '10-12':'10-12', '12-14':'12-14', '14-16':'14-16', '16-18':'16-18', '18-20':'18-20', '20-22':'20-22', '22-24':'22-24'},index=[0])
+                         '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
 ip_data= ip_data.append(header_ip)
+
+#----------------------------------------------
+ip_DATA= pd.DataFrame()
+for name in set(ip_data.iloc[:-1,:]['人员']):
+    ip_DATA = ip_DATA.append(ip_data.loc[ip_data['人员']==name,:].append(ip_data.iloc[-1,:]))
+
 # 更新每日数据--------------------------------------------------------------------------------------------------
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
@@ -515,7 +527,7 @@ sheet_ip =  book.sheets['ip历史']
 row_ip = sheet_ip.used_range.last_cell.row
 
 sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = shuju
-sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_data
+sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_DATA
 book.save()
 book.close()
 
@@ -532,11 +544,27 @@ redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'K{row_shuju +1}:V{row_shuju +10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
-                                                         font=redFill))
+                                                        font=redFill))
+# ip历史增加颜色
+ws_ip = wb['ip历史']
+source_range = ws_ip[f'A{row_ip-72}:P{row_ip-1}']
+# 复制源区域的单元格格式到目标区域
+for row in source_range:
+    for cell in row:
+        # 获取目标单元格
+        target_cell = ws_ip.cell(row=cell.row+72, column=cell.column)
+        # 复制单元格格式
+        target_cell.font = cell.font.copy()
+        target_cell.border = cell.border.copy()
+        target_cell.fill = cell.fill.copy()
+        target_cell.number_format = cell.number_format
+        target_cell.protection = cell.protection.copy()
+        target_cell.alignment = cell.alignment.copy()
+# 保存工作簿
 wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
 wb.close()
 # 保存截图
-
+pyperclip.copy('')
 book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
 sheet2_shuju = book2.sheets['数据']
 sheet2_ip =  book2.sheets['ip历史']
@@ -552,11 +580,11 @@ def delete_row(sheet, row_index):
 delete_row(sheet2_shuju,row_shuju+11)
 time.sleep(2)
 
-range_IP = sheet2_ip.range(f'A{row_ip+1}:P{row_ip+64}')
+range_IP = sheet2_ip.range(f'A{row_ip}:P{row_ip+71}')
 range_IP.api.CopyPicture()
 img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_IP.save(r'C:\Users\User\Desktop\SEO\截图文件\IP.png')  # 保存图片
-delete_row(sheet2_ip,row_ip+64)
+
 time.sleep(2)
 book2.save()
 book2.close()
@@ -566,11 +594,12 @@ app.quit()
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
 # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
 bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'))
+bot_DA.send_message(-812533282,f'#SEO数据 {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}')
 bot_DA.send_message(-812533282,f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
 bot_DA.send_message(-812533282,f'较前天总IP下降人员为：{str(list(shuju[:-2].loc[shuju[:-2]["对比昨天(总IP)"]<0,:]["人员"]))}')
 bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'))
 bot_DA.send_document(-812533282,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
 bot_DA.stop_polling()
 # 查看
-print(shuju)
-print(ip_data)
+# print(shuju)
+# print(ip_data)

@@ -360,6 +360,7 @@ grpCHARGE= grpCHARGE.rename(columns={'seo变化数据团队':'人员2'})
 shuju = pd.merge(shuju,grpCHARGE,how='left',on='人员2')
 shuju['转化率(%)'] = round(shuju['开户']/shuju['注册']*100,2)
 
+
 #------------
 # his_data  = pd.read_csv(r'C:\Users\User\Desktop\SEO\SEO每日更新_814.csv',encoding='gbk')
 his_data['日期']= pd.to_datetime(his_data['日期'])
@@ -395,6 +396,11 @@ shuju['对比前7天均值(总开户)']= shuju['开户']-be7_data['开户']
 
 shuju = shuju.iloc[:,:5].join(shuju.iloc[:,-4:]).join(shuju.iloc[:,5:-4])
 shuju.fillna(0,inplace=True)
+for name in shuju.index:
+    if shuju.loc[name,'注册']==0:
+        shuju.loc[name,'转化率(%)']=shuju.loc[name,'开户']*100
+    if shuju.loc[name,'发送IP']==0:
+        shuju.loc[name,'注册率(%)']=shuju.loc[name,'接收IP']*100
 
 shuju.loc[:,'对比昨天(总IP)':]=shuju.loc[:,'对比昨天(总IP)':].astype('int64')
 shuju['注册'] = shuju['注册'].astype('int64')
@@ -413,8 +419,11 @@ print('shuju处理完成。。。。')
 
 # 重置历史数据
 be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))]
+shuju2 = shuju.copy()
+shuju2= shuju2.rename(columns={'开户':'开户2','注册':'注册2','接收IP':'接收IP2','对比昨天(总开户)':'开户','对比昨天(总注册)':'注册','对比昨天(接收IP)':'接收IP','对比昨天(总IP)':'总IP'})
 
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','w') as f:
+    f.write('#SEO激活监控12点\n')
     f.write(f'截止今日12点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
             f'转化率 : {shuju.loc["当日汇总","转化率(%)"]}%\n')
     f.write(f"对比昨日12点,   注册:  {be_data.loc[be_data['人员']=='当日汇总','注册'].values[0]} ,开户:  {be_data.loc[be_data['人员']=='当日汇总','开户'].values[0]}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
@@ -422,9 +431,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','w') as f:
     f.write('\n')
     f.write(f'人员下降指标如下：\n')
     for i in range(9):
-        f.write(shuju.iloc[i,:]['人员'])
+        f.write(shuju2.iloc[i,:]['人员'])
         f.write(', ')
-        f.write(str(list(shuju.iloc[:,11:].iloc[i,:][shuju.iloc[:,11:].iloc[i,:]<0].index))+'\n')
+        f.write(str(list(shuju2.iloc[:,11:].iloc[i,:][shuju2.iloc[:,11:].iloc[i,:]<0].index))+'\n')
     f.write('\n')
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
 
@@ -498,9 +507,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','r') as f:
     text = f.read()
 
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png','rb'))
-bot_DA.send_message(-677235937,'#SEO激活监控12点')
-bot_DA.send_message(-677235937,text)
+bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png','rb'))
+# bot_DA.send_message(-812533282,'#SEO激活监控12点')
+bot_DA.send_message(-812533282,text)
 bot_DA.stop_polling()
 # 查看
 print(shuju)
