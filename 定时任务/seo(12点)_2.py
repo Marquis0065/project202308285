@@ -459,8 +459,11 @@ header_shuju = pd.DataFrame({'日期':'日期',
                              '对比昨天(总开户)':'对比昨天(总开户)',
                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
-shuju = shuju.append(header_shuju)
+# 增加%
+shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
+shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
 
+shuju = shuju.append(header_shuju)
 # 保存数据
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
@@ -486,8 +489,16 @@ wb.close()
 # # 保存截图
 book2 = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 sheet2_shuju = book2.sheets['数据(12点)_2']
-# sheet2_ip =  book2.sheets['ip历史']
-range_shuju = sheet2_shuju.range(f'A{row_shuju+1}:U{row_shuju+11}')
+sheet_tem = book2.sheets['临时']
+# 复制源Excel的区域到目标Excel的区域
+source_range = sheet2_shuju.range(f'A{row_shuju+1}:V{row_shuju+10}')
+target_range = sheet_tem.range('A3:U12')
+source_range.copy()
+target_range.paste()
+book2.save()
+# 截图
+pyperclip.copy('')
+range_shuju = sheet_tem.range('A1:U12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png')  # 保存图片
