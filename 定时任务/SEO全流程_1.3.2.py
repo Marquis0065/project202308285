@@ -138,8 +138,8 @@ for i in range(3):
 # 读取运行jar包的数据，及历史数据
 data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx')
 data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx','趋势分析')
-daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','数据')
+daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx','代理总表')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx','数据')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
@@ -377,7 +377,7 @@ shuju['当日注册激活率(%)'] = round(shuju['当日注册并开户']/shuju['
 his_data['日期']= pd.to_datetime(his_data['日期'])
 be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))][:-1]
 
-# shuju.sort_index(inplace=True)
+shuju.fillna(0,inplace=True)
 shuju.set_index('人员',inplace = True)
 shuju.sort_index(inplace=True)
 be_data.set_index('人员',inplace=True)
@@ -483,6 +483,7 @@ for name in name_list:
     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户转化率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'].iloc[0]*100,2)
     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'].iloc[0]*100,2)
     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),'总计'].iloc[0]*100,2)
+
 # 增加行末表头
 header_shuju = pd.DataFrame({'人员':'人员',
                              '日期':'日期',
@@ -506,14 +507,21 @@ header_shuju = pd.DataFrame({'人员':'人员',
                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
                              '对比前5天均值(总开户)':'对比前5天均值(总开户)',
                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
+    f.write(f'#SEO数据  {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}\n')
+    f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"]))}\n')
+    f.write(f'较前一天总IP下降人员为：{str(list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"]))}')
 # 增加%
 shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
 shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
+ip_data.fillna(0,inplace = True)
+ip_data.replace(np.inf,0,inplace = True)
 hour2_list = ['总计','0-2', '2-4', '4-6', '6-8', '8-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-22', '22-24']
 for idx in ['注册率(%)','接收率(%)','开户转化率(%)']:
     for h in hour2_list:
         ip_data.loc[(ip_data['指标']==idx),h]= ip_data.loc[(ip_data['指标']==idx),h].map(lambda x: str(x)+'%')
+print('ip_data处理完成 ')
 shuju = shuju.append(header_shuju)
 header_ip =pd.DataFrame({'日期':'日期',
                          '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
@@ -526,7 +534,7 @@ for name in set(ip_data.iloc[:-1,:]['人员']):
 
 # 更新每日数据--------------------------------------------------------------------------------------------------
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
 
 sheet_shuju = book.sheets['数据']
 row_shuju = sheet_shuju.used_range.last_cell.row
@@ -540,7 +548,7 @@ book.save()
 book.close()
 #
 # # 添加条件格式
-wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
 ws = wb['数据']
 # redFill = PatternFill(start_color='EE1111',end_color='EE1111',fill_type='solid')
 redFill = Font(color='FF0000')
@@ -569,11 +577,11 @@ for row in source_range:
         target_cell.protection = cell.protection.copy()
         target_cell.alignment = cell.alignment.copy()
 # 保存工作簿
-wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
 wb.close()
 # 保存截图
 pyperclip.copy('')
-book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
 sheet2_shuju = book2.sheets['数据']
 sheet2_ip =  book2.sheets['ip历史']
 sheet_tem = book2.sheets['临时']
@@ -584,6 +592,7 @@ source_range.copy()
 target_range.paste()
 book2.save()
 # 复制图片
+pyperclip.copy('')
 range_shuju = sheet_tem.range('A1:V12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
@@ -607,14 +616,14 @@ book2.close()
 app.quit()
 
 # 发送到群
-# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
+    text = f.read()
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
 # # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
-# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'))
-# bot_DA.send_message(-812533282,f'#SEO数据 {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}')
-# bot_DA.send_message(-812533282,f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
-# bot_DA.send_message(-812533282,f'较前天总IP下降人员为：{str(list(shuju[:-2].loc[shuju[:-2]["对比昨天(总IP)"]<0,:]["人员"]))}')
-# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'))
-# bot_DA.send_document(-812533282,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+bot_DA.send_message(-677235937,text,timeout=100)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
+bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx",'rb'),timeout=600)
 # bot_DA.stop_polling()
 # 查看
 # print(shuju)

@@ -348,7 +348,7 @@ grpSEO.set_index('seo变化数据团队',inplace=True)
 
 shuju=shuju.merge(grpSEO,on='人员2',how='left')
 
-shuju['注册率(%)'] = round(shuju['注册']/shuju['发送IP']*100,2)
+shuju['注册率(%)'] = round(shuju['注册']/shuju['接收IP']*100,2)
 
 merge_charge = pd.merge(firChargeUser,daili,how='left',left_on='所属代理',right_on='代理线')
 grpCHARGE = merge_charge.groupby('seo变化数据团队').agg({'seo变化数据团队':len})
@@ -366,7 +366,7 @@ shuju['转化率(%)'] = round(shuju['开户']/shuju['注册']*100,2)
 his_data['日期']= pd.to_datetime(his_data['日期'])
 be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))][:-1]
 
-# shuju.sort_index(inplace=True)
+shuju.fillna(0,inplace=True)
 shuju.set_index('人员',inplace = True)
 shuju.sort_index(inplace=True)
 be_data.set_index('人员',inplace=True)
@@ -399,8 +399,8 @@ shuju.fillna(0,inplace=True)
 for name in shuju.index:
     if shuju.loc[name,'注册']==0:
         shuju.loc[name,'转化率(%)']=shuju.loc[name,'开户']*100
-    if shuju.loc[name,'发送IP']==0:
-        shuju.loc[name,'注册率(%)']=shuju.loc[name,'接收IP']*100
+    if shuju.loc[name,'接收IP']==0:
+        shuju.loc[name,'注册率(%)']=shuju.loc[name,'注册']*100
 
 shuju.loc[:,'对比昨天(总IP)':]=shuju.loc[:,'对比昨天(总IP)':].astype('int64')
 shuju['注册'] = shuju['注册'].astype('int64')
@@ -517,11 +517,11 @@ app.quit()
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','r') as f:
     text = f.read()
 
-bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png','rb'))
-# bot_DA.send_message(-812533282,'#SEO激活监控12点')
-bot_DA.send_message(-812533282,text)
-bot_DA.stop_polling()
+# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png','rb'))
+# # bot_DA.send_message(-812533282,'#SEO激活监控12点')
+# bot_DA.send_message(-812533282,text)
+# bot_DA.stop_polling()
 # 查看
 print(shuju)
 

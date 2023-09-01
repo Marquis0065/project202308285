@@ -69,7 +69,7 @@ url_jar = 'http://localhost:9881/swagger-ui/index.html#/Mason%20Excel%20%E4%BA%A
 chrome_options = Options()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
-path = r'C:\Users\User\IdeaProjects\project1\Bsport\SEO日报\chromedriver.exe'
+path = r'/Bsport/SEO日报/chromedriver.exe'
 chrome_options.binary_location = path
 
 # path = r'C:\Users\User\IdeaProjects\project1\Bsport\SEO日报\chromedriver.exe'

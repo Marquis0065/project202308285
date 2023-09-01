@@ -377,7 +377,7 @@ shuju['当日注册激活率(%)'] = round(shuju['当日注册并开户']/shuju['
 his_data['日期']= pd.to_datetime(his_data['日期'])
 be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))][:-1]
 
-# shuju.sort_index(inplace=True)
+shuju.fillna(0,inplace=True)
 shuju.set_index('人员',inplace = True)
 shuju.sort_index(inplace=True)
 be_data.set_index('人员',inplace=True)
@@ -506,6 +506,10 @@ header_shuju = pd.DataFrame({'人员':'人员',
                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
                              '对比前5天均值(总开户)':'对比前5天均值(总开户)',
                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
+    f.write(f'#SEO数据  {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}\n')
+    f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"]))}\n')
+    f.write(f'较前一天总IP下降人员为：{str(list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"]))}')
 # 增加%
 shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
@@ -585,7 +589,7 @@ range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png')  # 保存图片
 # 删除行末表头
-pyperclip.copy('')
+
 def delete_row(sheet, row_index):
     range_obj = sheet.range(f'A{row_index}:A{row_index}')
     range_obj.api.EntireRow.Delete()
@@ -603,13 +607,13 @@ book2.close()
 app.quit()
 
 # 发送到群
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
+    text = f.read()
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
 # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'))
-bot_DA.send_message(-812533282,f'#SEO数据 {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}')
-bot_DA.send_message(-812533282,f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
-bot_DA.send_message(-812533282,f'较前天总IP下降人员为：{str(list(shuju[:-2].loc[shuju[:-2]["对比昨天(总IP)"]<0,:]["人员"]))}')
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'))
+bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+bot_DA.send_message(-812533282,text,timeout=100)
+bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
 bot_DA.send_document(-812533282,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
 bot_DA.stop_polling()
 # 查看
