@@ -441,32 +441,32 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','w') as f:
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
 
 # 增加行末表头
-header_shuju = pd.DataFrame({'日期':'日期',
-                             '时间':'时间',
-                             '人员':'人员',
-                             '发送IP':'总IP',
-                             '接收IP':'接收IP',
-                             '注册':'注册',
-                             '注册率(%)':'注册率(%)',
-                             '开户':'开户',
-                             '转化率(%)':'转化率(%)',
-                             '对比昨天(总IP)':'对比昨天(总IP)',
-                             '对比前3天均值(总IP)':'对比前3天均值(总IP)',
-                             '对比前7天均值(总IP)':'对比前7天均值(总IP)',
-                             '对比昨天(接收IP)':'对比昨天(接收IP)',
-                             '对比前3天均值(接收IP)':'对比前3天均值(接收IP)',
-                             '对比前7天均值(接收IP)':'对比前7天均值(接收IP)',
-                             '对比昨天(总注册)':'对比昨天(总注册)',
-                             '对比前3天均值(总注册)':'对比前3天均值(总注册)',
-                             '对比前7天均值(总注册)':'对比前7天均值(总注册)',
-                             '对比昨天(总开户)':'对比昨天(总开户)',
-                             '对比前3天均值(总开户)':'对比前3天均值(总开户)',
-                             '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
+# header_shuju = pd.DataFrame({'日期':'日期',
+#                              '时间':'时间',
+#                              '人员':'人员',
+#                              '发送IP':'总IP',
+#                              '接收IP':'接收IP',
+#                              '注册':'注册',
+#                              '注册率(%)':'注册率(%)',
+#                              '开户':'开户',
+#                              '转化率(%)':'转化率(%)',
+#                              '对比昨天(总IP)':'对比昨天(总IP)',
+#                              '对比前3天均值(总IP)':'对比前3天均值(总IP)',
+#                              '对比前7天均值(总IP)':'对比前7天均值(总IP)',
+#                              '对比昨天(接收IP)':'对比昨天(接收IP)',
+#                              '对比前3天均值(接收IP)':'对比前3天均值(接收IP)',
+#                              '对比前7天均值(接收IP)':'对比前7天均值(接收IP)',
+#                              '对比昨天(总注册)':'对比昨天(总注册)',
+#                              '对比前3天均值(总注册)':'对比前3天均值(总注册)',
+#                              '对比前7天均值(总注册)':'对比前7天均值(总注册)',
+#                              '对比昨天(总开户)':'对比昨天(总开户)',
+#                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
+#                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
 # 增加%
 # shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 # shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
 
-shuju = shuju.append(header_shuju)
+# shuju = shuju.append(header_shuju)
 # 保存数据
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
@@ -476,32 +476,38 @@ row_shuju = sheet_shuju.used_range.last_cell.row
 
 sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = shuju
 # sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_data
+sheet_tem = book.sheets['临时']
+shuju3 = shuju.copy()
+shuju3['注册率(%)'] =shuju3['注册率(%)'].apply(lambda x: str(x)+'%')
+shuju3['转化率(%)'] =shuju3['转化率(%)'].apply(lambda x: str(x)+'%')
+sheet_tem['A3'].options(index=False,header = False).value = shuju3
 book.save()
 book.close()
 
 # # 添加条件格式
 wb = load_workbook(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 ws = wb['数据(12点)_2']
+ws_tem = wb['临时']
 redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'J{row_shuju +1}:U{row_shuju+10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
                                                          font=redFill))
+# 临时表的条件格式
+ws_tem.conditional_formatting.add(f'J3:U12',
+                                  formatting.rule.CellIsRule(operator='lessThan',
+                                                             formula=['0'],
+                                                             font=redFill))
 wb.save(filename=r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 wb.close()
 # # 保存截图
 book2 = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
+tem_shuju = book2.sheets['临时']
 sheet2_shuju = book2.sheets['数据(12点)_2']
-sheet_tem = book2.sheets['临时']
-# 复制源Excel的区域到目标Excel的区域
-source_range = sheet2_shuju.range(f'A{row_shuju+1}:V{row_shuju+10}')
-target_range = sheet_tem.range('A3:U12')
-source_range.copy()
-target_range.paste()
-book2.save()
+#
 # 截图
 pyperclip.copy('')
-range_shuju = sheet_tem.range('A1:U12')
+range_shuju = tem_shuju.range('A1:U12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png')  # 保存图片

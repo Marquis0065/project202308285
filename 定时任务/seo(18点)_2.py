@@ -220,7 +220,7 @@ firChargeUser = pd.DataFrame(dic_fir)
 print('会员首存行列：',firChargeUser.shape)
 
 # 采集会员列表
-dic_user = dict({'会员账号':[], '姓名':[],'代理':[], '注册时间':[]})
+dic_user = dict({'会员账号':[], '姓名':[],'代理':[], '注册时间':[], '备注':[]})
 for page in range(1,pages_user+1):
     data2 = {
         'page':page,
@@ -246,10 +246,13 @@ for page in range(1,pages_user+1):
 
         dic_user['代理'].append(i['parentName'])
         dic_user['注册时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['registerDate']//1000)))
+        dic_user['备注'].append(i['remark'])
 user = pd.DataFrame(dic_user)
 print('用户列表行列:',user.shape)
 # 删除测试账号
-user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')]
+user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')&~user['姓名'].str.contains('测试') \
+            &~user['姓名'].str.contains('cheshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('cheshi') \
+            &~user['备注'].str.contains('测试')&~user['备注'].str.contains('试玩')&~user['备注'].str.contains('晒单')]
 print('去重后：',user.shape)
 
 print('开始处理shuju...')
@@ -409,7 +412,7 @@ for i in shuju.iloc[:,5:].columns:
     shuju.loc['当日汇总',i]=sum(shuju[i])
 
 # 重置三个率
-shuju.loc['当日汇总','注册率(%)']=round(shuju.loc['当日汇总','注册']/shuju.loc['当日汇总','发送IP']*100,2)
+shuju.loc['当日汇总','注册率(%)']=round(shuju.loc['当日汇总','注册']/shuju.loc['当日汇总','接收IP']*100,2)
 shuju.loc['当日汇总','转化率(%)']=round(shuju.loc['当日汇总','开户']/shuju.loc['当日汇总','注册']*100,2)
 
 shuju.insert(3,'人员',shuju.index)
@@ -426,14 +429,14 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','w') as f:
     f.write('#SEO激活监控18点\n')
     f.write(f'截止今日18点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
             f'转化率 : {shuju.loc["当日汇总","转化率(%)"]}%\n')
-    f.write(f"对比昨日18点,   注册:  {be_data.loc[be_data['人员']=='当日汇总','注册'].values[0]} ,开户:  {be_data.loc[be_data['人员']=='当日汇总','开户'].values[0]}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
-    f.write(f'同比昨日变化,   注册:  {shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0]} ,开户:  {shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0]}，整体转化率 : {round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)}%\n')
+    f.write(f"对比昨日18点,   注册:  {int(be_data.loc[be_data['人员']=='当日汇总','注册'].values[0])} ,开户:  {int(be_data.loc[be_data['人员']=='当日汇总','开户'].values[0])}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
+    f.write(f'同比昨日,   注册变动:\t  {int(shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0])} ,开户变动:\t  {int(shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0])}，转化率变动:\t {round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)}%\n')
     f.write('\n')
     f.write(f'人员下降指标如下：\n')
     for i in range(9):
         f.write(shuju2.iloc[i,:]['人员'])
         f.write(', ')
-        f.write(str(list(shuju2.iloc[:,11:].iloc[i,:][shuju2.iloc[:,11:].iloc[i,:]<0].index))+'\n')
+        f.write(str(list(shuju2.iloc[:,11:].iloc[i,:][shuju2.iloc[:,11:].iloc[i,:]<-100].index))+'\n')
     f.write('\n')
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
 
@@ -460,8 +463,8 @@ header_shuju = pd.DataFrame({'日期':'日期',
                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
 # 增加%
-shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
-shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
+# shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
+# shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
 shuju = shuju.append(header_shuju)
 
 # 保存数据
@@ -480,7 +483,7 @@ book.close()
 wb = load_workbook(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 ws = wb['数据(18点)_2']
 redFill = Font(color='FF0000')
-ws.conditional_formatting.add(f'K{row_shuju +1}:U{row_shuju+10}',
+ws.conditional_formatting.add(f'J{row_shuju +1}:U{row_shuju+10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
                                                          font=redFill))
@@ -518,9 +521,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','r') as f:
     text = f.read()
 
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-2.png','rb'))
-# bot_DA.send_message(-677235937,'#SEO激活监控18点')
-bot_DA.send_message(-812533282,text)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-2.png','rb'))
+# bot_DA.send_message(-812533282,'#SEO激活监控18点')
+bot_DA.send_message(-677235937,text)
 bot_DA.stop_polling()
 # 查看
 print(shuju)

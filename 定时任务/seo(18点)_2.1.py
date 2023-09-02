@@ -138,7 +138,7 @@ for i in range(3):
 data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx')
 data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx','趋势分析')
 daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx','数据(12点)_2')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx','数据(18点)_2')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
@@ -363,7 +363,6 @@ grpCHARGE= grpCHARGE.rename(columns={'seo变化数据团队':'人员2'})
 shuju = pd.merge(shuju,grpCHARGE,how='left',on='人员2')
 shuju['转化率(%)'] = round(shuju['开户']/shuju['注册']*100,2)
 
-
 #------------
 # his_data  = pd.read_csv(r'C:\Users\User\Desktop\SEO\SEO每日更新_814.csv',encoding='gbk')
 his_data['日期']= pd.to_datetime(his_data['日期'])
@@ -425,12 +424,13 @@ be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(da
 shuju2 = shuju.copy()
 shuju2= shuju2.rename(columns={'开户':'开户2','注册':'注册2','接收IP':'接收IP2','对比昨天(总开户)':'开户','对比昨天(总注册)':'注册','对比昨天(接收IP)':'接收IP','对比昨天(总IP)':'总IP'})
 
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','w') as f:
-    f.write('#SEO激活监控12点\n')
-    f.write(f'截止今日12点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
+
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','w') as f:
+    f.write('#SEO激活监控18点\n')
+    f.write(f'截止今日18点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
             f'转化率 : {shuju.loc["当日汇总","转化率(%)"]}%\n')
-    f.write(f"对比昨日12点,   注册:  {int(be_data.loc[be_data['人员']=='当日汇总','注册'].values[0])} ,开户:  {int(be_data.loc[be_data['人员']=='当日汇总','开户'].values[0])}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
-    f.write(f'同比昨日,   注册变动:  {int(shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0])} ,开户变动:  {int(shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0])}，转化率变动 : {round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)}%\n')
+    f.write(f"对比昨日18点,   注册:  {int(be_data.loc[be_data['人员']=='当日汇总','注册'].values[0])} ,开户:  {int(be_data.loc[be_data['人员']=='当日汇总','开户'].values[0])}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
+    f.write(f'同比昨日,   注册变动:\t  {int(shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0])} ,开户变动:\t  {int(shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0])}，转化率变动:\t {round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)}%\n')
     f.write('\n')
     f.write(f'人员下降指标如下：\n')
     for i in range(9):
@@ -441,70 +441,75 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','w') as f:
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
 
 # 增加行末表头
-header_shuju = pd.DataFrame({'日期':'日期',
-                             '时间':'时间',
-                             '人员':'人员',
-                             '发送IP':'总IP',
-                             '接收IP':'接收IP',
-                             '注册':'注册',
-                             '注册率(%)':'注册率(%)',
-                             '开户':'开户',
-                             '转化率(%)':'转化率(%)',
-                             '对比昨天(总IP)':'对比昨天(总IP)',
-                             '对比前3天均值(总IP)':'对比前3天均值(总IP)',
-                             '对比前7天均值(总IP)':'对比前7天均值(总IP)',
-                             '对比昨天(接收IP)':'对比昨天(接收IP)',
-                             '对比前3天均值(接收IP)':'对比前3天均值(接收IP)',
-                             '对比前7天均值(接收IP)':'对比前7天均值(接收IP)',
-                             '对比昨天(总注册)':'对比昨天(总注册)',
-                             '对比前3天均值(总注册)':'对比前3天均值(总注册)',
-                             '对比前7天均值(总注册)':'对比前7天均值(总注册)',
-                             '对比昨天(总开户)':'对比昨天(总开户)',
-                             '对比前3天均值(总开户)':'对比前3天均值(总开户)',
-                             '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
+# header_shuju = pd.DataFrame({'日期':'日期',
+#                              '时间':'时间',
+#                              '人员':'人员',
+#                              '发送IP':'总IP',
+#                              '接收IP':'接收IP',
+#                              '注册':'注册',
+#                              '注册率(%)':'注册率(%)',
+#                              '开户':'开户',
+#                              '转化率(%)':'转化率(%)',
+#                              '对比昨天(总IP)':'对比昨天(总IP)',
+#                              '对比前3天均值(总IP)':'对比前3天均值(总IP)',
+#                              '对比前7天均值(总IP)':'对比前7天均值(总IP)',
+#                              '对比昨天(接收IP)':'对比昨天(接收IP)',
+#                              '对比前3天均值(接收IP)':'对比前3天均值(接收IP)',
+#                              '对比前7天均值(接收IP)':'对比前7天均值(接收IP)',
+#                              '对比昨天(总注册)':'对比昨天(总注册)',
+#                              '对比前3天均值(总注册)':'对比前3天均值(总注册)',
+#                              '对比前7天均值(总注册)':'对比前7天均值(总注册)',
+#                              '对比昨天(总开户)':'对比昨天(总开户)',
+#                              '对比前3天均值(总开户)':'对比前3天均值(总开户)',
+#                              '对比前7天均值(总开户)':'对比前7天均值(总开户)'},index=[0])
 # 增加%
 # shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 # shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
+# shuju = shuju.append(header_shuju)
 
-shuju = shuju.append(header_shuju)
 # 保存数据
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 
-sheet_shuju = book.sheets['数据(12点)_2']
+sheet_shuju = book.sheets['数据(18点)_2']
 row_shuju = sheet_shuju.used_range.last_cell.row
 
 sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = shuju
+sheet_tem = book.sheets['临时']
+shuju3 = shuju.copy()
+shuju3['注册率(%)'] =shuju3['注册率(%)'].apply(lambda x: str(x)+'%')
+shuju3['转化率(%)'] =shuju3['转化率(%)'].apply(lambda x: str(x)+'%')
+sheet_tem['A3'].options(index=False,header = False).value = shuju3
 # sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_data
 book.save()
 book.close()
 
 # # 添加条件格式
 wb = load_workbook(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
-ws = wb['数据(12点)_2']
+ws = wb['数据(18点)_2']
+ws_tem = wb['临时']
 redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'J{row_shuju +1}:U{row_shuju+10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
                                                          font=redFill))
+# 临时表的条件格式
+ws_tem.conditional_formatting.add(f'J3:U12',
+                                     formatting.rule.CellIsRule(operator='lessThan',
+                                                                formula=['0'],
+                                                                font=redFill))
 wb.save(filename=r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 wb.close()
 # # 保存截图
+# pyperclip.copy('')
 book2 = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
-sheet2_shuju = book2.sheets['数据(12点)_2']
-sheet_tem = book2.sheets['临时']
-# 复制源Excel的区域到目标Excel的区域
-source_range = sheet2_shuju.range(f'A{row_shuju+1}:V{row_shuju+10}')
-target_range = sheet_tem.range('A3:U12')
-source_range.copy()
-target_range.paste()
-book2.save()
+tem_shuju = book2.sheets['临时']
+sheet2_shuju = book2.sheets['数据(18点)_2']
 # 截图
-pyperclip.copy('')
-range_shuju = sheet_tem.range('A1:U12')
+range_shuju = tem_shuju.range(f'A1:U12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
-img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png')  # 保存图片
+img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-2.png')  # 保存图片
 # pyperclip.copy('')
 # # 删除行末表头
 def delete_row(sheet, row_index):
@@ -517,14 +522,14 @@ book2.save()
 book2.close()
 app.quit()
 # # 发送到群
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12.txt','r') as f:
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','r') as f:
     text = f.read()
 
-# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-2.png','rb'))
-# # bot_DA.send_message(-812533282,'#SEO激活监控12点')
-# bot_DA.send_message(-812533282,text)
-# bot_DA.stop_polling()
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-2.png','rb'))
+# bot_DA.send_message(-812533282,'#SEO激活监控18点')
+bot_DA.send_message(-677235937,text)
+bot_DA.stop_polling()
 # 查看
 print(shuju)
 

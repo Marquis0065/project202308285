@@ -219,7 +219,7 @@ firChargeUser = pd.DataFrame(dic_fir)
 print('会员首存行列：',firChargeUser.shape)
 
 # 采集会员列表
-dic_user = dict({'会员账号':[], '姓名':[],'代理':[], '注册时间':[]})
+dic_user = dict({'会员账号':[], '姓名':[],'代理':[], '注册时间':[], '备注':[]})
 for page in range(1,pages_user+1):
     data2 = {
         'page':page,
@@ -245,10 +245,13 @@ for page in range(1,pages_user+1):
 
         dic_user['代理'].append(i['parentName'])
         dic_user['注册时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['registerDate']//1000)))
+        dic_user['备注'].append(i['remark'])
 user = pd.DataFrame(dic_user)
 print('用户列表行列:',user.shape)
 # 删除测试账号
-user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')]
+user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')&~user['姓名'].str.contains('测试')\
+            &~user['姓名'].str.contains('cheshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('cheshi')\
+            &~user['备注'].str.contains('测试')&~user['备注'].str.contains('试玩')&~user['备注'].str.contains('晒单')]
 print('去重后：',user.shape)
 
 #  开始处理数据---------------------------------------------
