@@ -325,13 +325,30 @@ try:
     shuju.loc['Hugo','接收IP']=grp.loc['hugo.bty','IP']
 except:
     shuju.loc['Hugo','接收IP']=0
-
-shuju.loc['Aber','发送IP']=grp.loc['aber.com','IP']/2
-shuju.loc['Aber','接收IP']=grp.loc['aber.bty','IP']
-shuju.loc['DK','发送IP']=grp.loc['dk.com','IP']/2
-shuju.loc['DK','接收IP']=grp.loc['dk.bty','IP']
-shuju.loc['Ben','发送IP']=grp.loc['ben.com','IP']/2
-shuju.loc['Ben','接收IP']=grp.loc['ben.bty','IP']
+try:
+    shuju.loc['Aber','发送IP']=grp.loc['aber.com','IP']/2
+except:
+    shuju.loc['Aber','发送IP']=0
+try:
+    shuju.loc['Aber','接收IP']=grp.loc['aber.bty','IP']
+except:
+    shuju.loc['Aber','接收IP']=0
+try:
+    shuju.loc['DK','发送IP']=grp.loc['dk.com','IP']/2
+except:
+    shuju.loc['DK','发送IP']=0
+try:
+    shuju.loc['DK','接收IP']=grp.loc['dk.bty','IP']
+except:
+    shuju.loc['DK','接收IP']=0
+try:
+    shuju.loc['Ben','发送IP']=grp.loc['ben.com','IP']/2
+except:
+    shuju.loc['Ben','发送IP']=0
+try:
+    shuju.loc['Ben','接收IP']=grp.loc['ben.bty','IP']
+except:
+    shuju.loc['Ben','接收IP']=0
 shuju.loc['当日汇总','发送IP']=shuju['发送IP'].sum()
 shuju.loc['当日汇总','接收IP']=shuju['接收IP'].sum()
 
@@ -436,7 +453,8 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','w') as f:
     for i in range(9):
         f.write(shuju2.iloc[i,:]['人员'])
         f.write(', ')
-        f.write(str(list(shuju2.iloc[:,11:].iloc[i,:][shuju2.iloc[:,11:].iloc[i,:]<-100].index))+'\n')
+        f.write(str(list(shuju2.iloc[:,9:15].iloc[i,:][shuju2.iloc[:,9:15].iloc[i,:]< -99].index)+\
+                    list(shuju2.iloc[:,15:].iloc[i,:][shuju2.iloc[:,15:].iloc[i,:]< -9].index))+'\n')
     f.write('\n')
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
 

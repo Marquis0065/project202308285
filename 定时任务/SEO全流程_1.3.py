@@ -514,9 +514,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"]))}\n')
     f.write(f'较前一天总IP下降人员为：{str(list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"]))}')
 # 增加%
-shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
-shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
-shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
+# shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
+# shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
+# shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
 shuju = shuju.append(header_shuju)
 header_ip =pd.DataFrame({'日期':'日期',
                          '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
