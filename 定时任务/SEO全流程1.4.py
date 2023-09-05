@@ -1,8 +1,4 @@
 import os
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 import warnings
 warnings.filterwarnings('ignore')
 import requests
@@ -12,7 +8,6 @@ import jsonpath
 import json
 import time
 import datetime
-import subprocess
 import xlwings as xw
 import telebot
 import hmac, base64, struct, hashlib
@@ -26,15 +21,14 @@ pd.set_option('display.max_colwidth', None) #显示单元格完整信息
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
-day = -1
+day = -2
+start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
+end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 pages_user = 150
 pages_fircharge = 60
-with open(r'C:\Users\User\Desktop\SEO\SEO代码新 0903到期.txt','r') as f:
-    access_token = f.read()
+# with open(r'C:\Users\User\Desktop\SEO\SEO代码新 0903到期.txt','r') as f:
+#     access_token = f.read()
 # 启动控制台
-print('启动cmd。。。。')
-command = 'java -jar C:\\Users\\User\\Desktop\\mason-excel-0.0.1-SNAPSHOT.jar'
-process = subprocess.Popen(command, shell=True)
 
 url = 'http://fundmng.bsportsadmin.com/api/manage/fund/withdraw/record/list/history'
 session = requests.session()
@@ -77,69 +71,85 @@ def get_google_code(secret):
 
 # selenium模拟浏览器,并运行jar包，生成今日数据
 # 指定文件夹路径
-folder_path = r'C:\Users\User\Desktop\SEO\_0816'
-# 指定文件名
-file_name = '今日数据.xlsx'
-# 判断文件是否存在
-file_path = os.path.join(folder_path, file_name)
-if os.path.exists(file_path):
-    os.remove(file_path)
+# folder_path = r'C:\Users\User\Desktop\SEO\_0816'
+# # 指定文件名
+# file_name = '今日数据.xlsx'
+# # 判断文件是否存在
+# file_path = os.path.join(folder_path, file_name)
+# if os.path.exists(file_path):
+#     os.remove(file_path)
 
-# handless无界面浏览器设置
-url_jar = 'http://localhost:9881/swagger-ui/index.html#/Mason%20Excel%20%E4%BA%A7%E7%94%9F/index2UsingPOST'
-chrome_options = Options()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--disable-gpu')
-path = r'C:\Users\User\IdeaProjects\project1\Bsport\SEO日报\chromedriver.exe'
-chrome_options.binary_location = path
+## python接口提取今日数据
+print('启动百度统计API----')
+shuju_website = {'domain':[],
+         '日期':[],
+         'pv':[],
+         'uv':[],
+         'ip':[]}
+qishi = {'domain':[],
+         '日期':[],
+         '时间':[],
+         'pv':[],
+         'uv':[],
+         'ip':[]}
 
-# path = r'C:\Users\User\IdeaProjects\project1\Bsport\SEO日报\chromedriver.exe'
-def fun_jar():
-    browser = webdriver.Chrome(options=chrome_options)
-    browser.get(url_jar)
-    time.sleep(3)
-    button = browser.find_element(By.XPATH,'//div[@class="try-out"]/button')
-    button.click()
-    time.sleep(2)
-    input = browser.find_elements(By.XPATH,'//input')
-    input[0].send_keys((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d'))
-    time.sleep(2)
-    outpath = r'C:\Users\User\Desktop\SEO\_0816'+'\\'
-    input[2].send_keys(9999)
-    time.sleep(2)
-    input[4].send_keys(outpath)
-    time.sleep(2)
-    input[5].send_keys((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d'))
-    textarea = browser.find_element(By.TAG_NAME,'textarea')
-    textarea.clear()
-    textarea.send_keys(access_token)
-    time.sleep(3)
-    Execute = browser.find_element(By.XPATH,'//button[@class="btn execute opblock-control__btn"]')
-    Execute.click()
-    browser.quit()
+url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
+response = requests.get(url_siteid)
+# jsonpath.jsonpath(json.loads(response.text),'$..site_id')
+# jsonpath.jsonpath(json.loads(response.text),'$..domain')
+dic_website = {}
+for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
+    dic_website[k]=v
 
-# 运行模拟浏览器函数
-fun_jar()
-print('开始运行jar包：',time.strftime('%H:%M',time.localtime()))
-time.sleep(300)
-print('jar包运行结束: ',time.strftime('%H:%M',time.localtime()))
+# 分别获取各网站数据
+app = xw.App(visible=False,add_book=False)
+book = app.books.open(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx')
+sheet1 = book.sheets['网站概况']
+sheet1.range('A2').clear_contents()
+sheet_qishu = book.sheets['趋势分析']
+sheet_qishu.range('A2').clear_contents()
+for k in dic_website:
+    url_web = f'https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w&site_id={dic_website[k]}&method=overview/getTimeTrendRpt&start_date={start_date}&end_date={end_date}&metrics=pv_count,visitor_count,ip_count'
+    response = requests.get(url_web)
+    response.encoding='utf8'
+    # 趋势数据
+    for i in range(24):
+        qishi['domain'].append(k)
+        qishi['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
+        qishi['时间'].append(i)
+        qishi['pv'].append(json.loads(response.text)['result']['items'][1][i][0])
+        qishi['uv'].append(json.loads(response.text)['result']['items'][1][i][1])
+        qishi['ip'].append(json.loads(response.text)['result']['items'][1][i][2])
+    result_pv_uv_ip = []
+    # 遍历列表并相加元素
+    for i in range(3):
+        sum = 0
+        for j in range(len(json.loads(response.text)['result']['items'][1])):
+            try:
+                sum += json.loads(response.text)['result']['items'][1][j][i]
+            except:
+                sum +=0
+        result_pv_uv_ip.append(sum)
 
-for i in range(3):
-    if not os.path.exists(file_path):
-        process.terminate()
-        process.wait()
-        print(f'第{i+1}次重新运行jar包，请再耐心等等。。')
-        fun_jar()
-        time.sleep(300)
-        continue
-    break
+    shuju_website['domain'].append(k)
+    shuju_website['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
+    shuju_website['pv'].append(result_pv_uv_ip[0])
+    shuju_website['uv'].append(result_pv_uv_ip[1])
+    shuju_website['ip'].append(result_pv_uv_ip[2])
+    time.sleep(1)
+sheet1.range('A2').options(index=False,header = False).value = pd.DataFrame(shuju_website)
+sheet_qishu.range('A2').options(index=False,header = False).value = pd.DataFrame(qishi)
+book.save()
+app.quit()
+
 
 # 后续采集会员列表，首充记录、数据处理
 # 读取运行jar包的数据，及历史数据
-data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx')
-data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\_0816\今日数据.xlsx','趋势分析')
-daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx','数据')
+print('读取今日数据。。')
+data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx',index_col=0)
+data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx','趋势分析')
+daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','代理总表')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','数据')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
@@ -276,68 +286,69 @@ shuju = pd.DataFrame({'人员':['Paddy', 'Tony', 'Max', 'Martin', 'Zed', 'Hugo',
 
 shuju.set_index('人员',inplace = True)
 
-data_today['IP']=pd.to_numeric(data_today['IP'],errors='coerce').replace(np.nan,0).astype('int64')
-grp=data_today.groupby('网站名(domain)').agg({'IP':sum})
+# data_today['IP']=pd.to_numeric(data_today['IP'],errors='coerce').replace(np.nan,0).astype('int64')
+# data_today=data_today.groupby('网站名(domain)').agg({'IP':sum})
 try:
-    shuju.loc['Paddy','发送IP']=grp.loc['paddy.com','IP']
+    shuju.loc['Paddy','发送IP']=data_today.loc['paddy.com','IP']
 except:
     shuju.loc['Paddy','发送IP']=0
 try:
-    shuju.loc['Paddy','接受IP']=grp.loc['paddy.bty','IP']
+    shuju.loc['Paddy','接受IP']=data_today.loc['paddy.bty','IP']
 except:
     shuju.loc['Paddy','接受IP']=0
 try:
-    shuju.loc['Tony','发送IP']=grp.loc['tonyb.com','IP']/2
+    shuju.loc['Tony','发送IP']=data_today.loc['tonyb.com','IP']
 except:
     shuju.loc['Tony', '发送IP'] = 0
 try:
-    shuju.loc['Tony','接受IP']=grp.loc['tony.bty','IP']
+    shuju.loc['Tony','接受IP']=data_today.loc['tony.bty','IP']
 except:
     shuju.loc['Tony', '接受IP'] = 0
 try:
-    shuju.loc['Max','发送IP']=grp.loc['mulu.com','IP']
+    shuju.loc['Max','发送IP']=data_today.loc['mulu.com','IP']
+    # shuju.loc['Max','发送IP']=data_today.loc['maxile.com','IP']
 except:
     shuju.loc['Max', '发送IP'] = 0
 try:
-    shuju.loc['Max','接受IP']=grp.loc['max.bty','IP']
+    shuju.loc['Max','接受IP']=data_today.loc['max.bty','IP']
 except:
     shuju.loc['Max', '接受IP'] = 0
 try:
-    shuju.loc['Martin','发送IP']=grp.loc['redquan.com','IP']
+    shuju.loc['Martin','发送IP']=data_today.loc['redquan.com','IP']
 except:
     shuju.loc['Martin', '发送IP'] = 0
 try:
-    shuju.loc['Martin','接受IP']=grp.loc['martin.bty','IP']
+    shuju.loc['Martin','接受IP']=data_today.loc['martin.bty','IP']
 except:
     shuju.loc['Martin','接受IP']=0
 try:
-    shuju.loc['Zed','发送IP']=grp.loc['zed.com','IP']
+    shuju.loc['Zed','发送IP']=data_today.loc['zed.com','IP']
 except:
     shuju.loc['Zed', '发送IP'] = 0
 try:
-    shuju.loc['Zed','接受IP']=grp.loc['zed.bty','IP']
+    shuju.loc['Zed','接受IP']=data_today.loc['zed.bty','IP']
 except:
     shuju.loc['Zed', '接受IP'] = 0
 try:
-    shuju.loc['Hugo','发送IP']=grp.loc['hugo.com','IP']
+    shuju.loc['Hugo','发送IP']=data_today.loc['hugo.com','IP']
 except:
     shuju.loc['Hugo', '发送IP'] = 0
 try:
-    shuju.loc['Hugo','接受IP']=grp.loc['hugo.bty','IP']
+    shuju.loc['Hugo','接受IP']=data_today.loc['hugo.bty','IP']
 except:
     shuju.loc['Hugo','接受IP']=0
 try:
-    shuju.loc['Aber','发送IP']=grp.loc['aber.com','IP']/2
+    shuju.loc['Aber','发送IP']=data_today.loc['aber.com','IP']
 except:
     shuju.loc['Aber','发送IP']=0
 try:
-    shuju.loc['Aber','接受IP']=grp.loc['aber.bty','IP']
+    shuju.loc['Aber','接受IP']=data_today.loc['aber.bty','IP']
 except:
     shuju.loc['Aber','接受IP']=0
-shuju.loc['DK','发送IP']=grp.loc['dk.com','IP']/2
-shuju.loc['DK','接受IP']=grp.loc['dk.bty','IP']
-shuju.loc['Ben','发送IP']=grp.loc['ben.com','IP']/2
-shuju.loc['Ben','接受IP']=grp.loc['ben.bty','IP']
+shuju.loc['DK','发送IP']=data_today.loc['dk.com','IP']
+shuju.loc['DK','接受IP']=data_today.loc['dk.bty','IP']
+shuju.loc['Ben','发送IP']=data_today.loc['ben.com','IP']
+shuju.loc['Ben','接受IP']=data_today.loc['ben.bty','IP']
 shuju.loc['当日汇总','发送IP']=shuju['发送IP'].sum()
 shuju.loc['当日汇总','接受IP']=shuju['接受IP'].sum()
 
@@ -349,35 +360,35 @@ shuju['人员2']=shuju['人员2'].str.lower()
 shuju.reset_index(inplace=True)
 
 merge_user = pd.merge(user,daili,how = 'left',left_on='代理',right_on='代理线')
-grpSEO = merge_user.groupby('seo变化数据团队').agg({'seo变化数据团队':len})
-grpSEO.rename(columns={'seo变化数据团队':'注册'},inplace=True)
-grpSEO.reset_index(inplace=True)
-grpSEO['人员2'] = grpSEO['seo变化数据团队'].str.lower()
-grpSEO.set_index('seo变化数据团队',inplace=True)
+data_todaySEO = merge_user.groupby('seo变化数据团队').agg({'seo变化数据团队':len})
+data_todaySEO.rename(columns={'seo变化数据团队':'注册'},inplace=True)
+data_todaySEO.reset_index(inplace=True)
+data_todaySEO['人员2'] = data_todaySEO['seo变化数据团队'].str.lower()
+data_todaySEO.set_index('seo变化数据团队',inplace=True)
 
-shuju=shuju.merge(grpSEO,on='人员2',how='left')
+shuju=shuju.merge(data_todaySEO,on='人员2',how='left')
 
 shuju['注册率(%)'] = round(shuju['注册']/shuju['发送IP']*100,2)
 
 merge_charge = pd.merge(firChargeUser,daili,how='left',left_on='所属代理',right_on='代理线')
-grpCHARGE = merge_charge.groupby('seo变化数据团队').agg({'seo变化数据团队':len})
-grpCHARGE= grpCHARGE.rename(columns={'seo变化数据团队':'开户'})
-grpCHARGE.reset_index(inplace=True)
-grpCHARGE['seo变化数据团队']=grpCHARGE['seo变化数据团队'].str.lower()
-grpCHARGE= grpCHARGE.rename(columns={'seo变化数据团队':'人员2'})
+data_todayCHARGE = merge_charge.groupby('seo变化数据团队').agg({'seo变化数据团队':len})
+data_todayCHARGE= data_todayCHARGE.rename(columns={'seo变化数据团队':'开户'})
+data_todayCHARGE.reset_index(inplace=True)
+data_todayCHARGE['seo变化数据团队']=data_todayCHARGE['seo变化数据团队'].str.lower()
+data_todayCHARGE= data_todayCHARGE.rename(columns={'seo变化数据团队':'人员2'})
 # 第2次merge
-shuju = pd.merge(shuju,grpCHARGE,how='left',on='人员2')
+shuju = pd.merge(shuju,data_todayCHARGE,how='left',on='人员2')
 shuju['转化率(%)'] = round(shuju['开户']/shuju['注册']*100,2)
 
 merge_charge['注册时间']= pd.to_datetime(merge_charge['注册时间'])
 merge_charge['交易时间']= pd.to_datetime(merge_charge['交易时间'])
-grp3  = merge_charge[merge_charge['注册时间'].dt.strftime('%Y/%m/%d')==merge_charge['交易时间'].dt.strftime('%Y/%m/%d')].groupby('seo变化数据团队').agg({'seo变化数据团队':len})
-grp3.rename(columns = {'seo变化数据团队':'当日注册并开户'},inplace=True)
-grp3.reset_index(inplace=True)
-grp3['seo变化数据团队'] =grp3['seo变化数据团队'].str.lower()
-grp3.rename(columns = {'seo变化数据团队':'人员2'},inplace=True)
+data_today3  = merge_charge[merge_charge['注册时间'].dt.strftime('%Y/%m/%d')==merge_charge['交易时间'].dt.strftime('%Y/%m/%d')].groupby('seo变化数据团队').agg({'seo变化数据团队':len})
+data_today3.rename(columns = {'seo变化数据团队':'当日注册并开户'},inplace=True)
+data_today3.reset_index(inplace=True)
+data_today3['seo变化数据团队'] =data_today3['seo变化数据团队'].str.lower()
+data_today3.rename(columns = {'seo变化数据团队':'人员2'},inplace=True)
 # 第3次merge
-shuju  = pd.merge(shuju,grp3,how='left',on='人员2')
+shuju  = pd.merge(shuju,data_today3,how='left',on='人员2')
 shuju['当日注册激活率(%)'] = round(shuju['当日注册并开户']/shuju['注册']*100,2)
 
 #------------
@@ -427,9 +438,10 @@ shuju.loc[:,'对比昨天(总IP)':'对比前7天均值(总开户)']=shuju.loc[:,
 shuju['注册'] = shuju['注册'].astype('int64')
 shuju['开户'] = shuju['开户'].astype('int64')
 shuju['当日注册并开户'] = shuju['当日注册并开户'].astype('int64')
-
+print(shuju.info())
+print(shuju)
 for i in shuju.iloc[:,4:].columns:
-    shuju.loc['当日汇总',i]=sum(shuju[i])
+    shuju.loc['当日汇总',i]=shuju[i].sum()
 # 重置三个率
 shuju.loc['当日汇总','注册率(%)']=round(shuju.loc['当日汇总','注册']/shuju.loc['当日汇总','发送IP']*100,2)
 shuju.loc['当日汇总','转化率(%)']=round(shuju.loc['当日汇总','开户']/shuju.loc['当日汇总','注册']*100,2)
@@ -491,7 +503,6 @@ for name in name_list:
     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户转化率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='开户'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'].iloc[0]*100,2)
     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='注册'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'].iloc[0]*100,2)
     ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收率(%)'),'总计'] =round(ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='接收IP数'),'总计'].iloc[0] / ip_data.loc[(ip_data['人员']==name) & (ip_data['指标']=='发送IP数'),'总计'].iloc[0]*100,2)
-
 # 增加行末表头
 header_shuju = pd.DataFrame({'人员':'人员',
                              '日期':'日期',
@@ -520,16 +531,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"]))}\n')
     f.write(f'较前一天总IP下降人员为：{str(list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"]))}')
 # 增加%
-shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
-shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
-shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
-ip_data.fillna(0,inplace = True)
-ip_data.replace(np.inf,0,inplace = True)
-hour2_list = ['总计','0-2', '2-4', '4-6', '6-8', '8-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-22', '22-24']
-for idx in ['注册率(%)','接收率(%)','开户转化率(%)']:
-    for h in hour2_list:
-        ip_data.loc[(ip_data['指标']==idx),h]= ip_data.loc[(ip_data['指标']==idx),h].map(lambda x: str(x)+'%')
-print('ip_data处理完成 ')
+# shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
+# shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
+# shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
 shuju = shuju.append(header_shuju)
 header_ip =pd.DataFrame({'日期':'日期',
                          '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
@@ -542,7 +546,7 @@ for name in set(ip_data.iloc[:-1,:]['人员']):
 
 # 更新每日数据--------------------------------------------------------------------------------------------------
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
+book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
 
 sheet_shuju = book.sheets['数据']
 row_shuju = sheet_shuju.used_range.last_cell.row
@@ -556,7 +560,7 @@ book.save()
 book.close()
 #
 # # 添加条件格式
-wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
+wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
 ws = wb['数据']
 # redFill = PatternFill(start_color='EE1111',end_color='EE1111',fill_type='solid')
 redFill = Font(color='FF0000')
@@ -585,11 +589,11 @@ for row in source_range:
         target_cell.protection = cell.protection.copy()
         target_cell.alignment = cell.alignment.copy()
 # 保存工作簿
-wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
+wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
 wb.close()
 # 保存截图
-pyperclip.copy('')
-book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx')
+# pyperclip.copy('')
+book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
 sheet2_shuju = book2.sheets['数据']
 sheet2_ip =  book2.sheets['ip历史']
 sheet_tem = book2.sheets['临时']
@@ -600,13 +604,13 @@ source_range.copy()
 target_range.paste()
 book2.save()
 # 复制图片
-pyperclip.copy('')
+# pyperclip.copy('')
 range_shuju = sheet_tem.range('A1:V12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png')  # 保存图片
 # 删除行末表头
-pyperclip.copy('')
+
 def delete_row(sheet, row_index):
     range_obj = sheet.range(f'A{row_index}:A{row_index}')
     range_obj.api.EntireRow.Delete()
@@ -627,12 +631,12 @@ app.quit()
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
+# bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
 bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
 bot_DA.send_message(-677235937,text,timeout=100)
 bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
-bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史22.xlsx",'rb'),timeout=600)
-# bot_DA.stop_polling()
+bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
+bot_DA.stop_polling()
 # 查看
 # print(shuju)
 # print(ip_data)

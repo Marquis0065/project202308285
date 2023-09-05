@@ -326,9 +326,14 @@ try:
     shuju.loc['Hugo','接受IP']=grp.loc['hugo.bty','IP']
 except:
     shuju.loc['Hugo','接受IP']=0
-
-shuju.loc['Aber','发送IP']=grp.loc['aber.com','IP']/2
-shuju.loc['Aber','接受IP']=grp.loc['aber.bty','IP']
+try:
+    shuju.loc['Aber','发送IP']=grp.loc['aber.com','IP']/2
+except:
+    shuju.loc['Aber','发送IP']=0
+try:
+    shuju.loc['Aber','接受IP']=grp.loc['aber.bty','IP']
+except:
+    shuju.loc['Aber','接受IP']=0
 shuju.loc['DK','发送IP']=grp.loc['dk.com','IP']/2
 shuju.loc['DK','接受IP']=grp.loc['dk.bty','IP']
 shuju.loc['Ben','发送IP']=grp.loc['ben.com','IP']/2
@@ -598,7 +603,7 @@ def delete_row(sheet, row_index):
     range_obj.api.EntireRow.Delete()
 delete_row(sheet2_shuju,row_shuju+11)
 time.sleep(2)
-
+pyperclip.copy('')
 range_IP = sheet2_ip.range(f'A{row_ip}:P{row_ip+71}')
 range_IP.api.CopyPicture()
 img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
@@ -612,13 +617,13 @@ app.quit()
 # 发送到群
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
-bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
-bot_DA.send_message(-812533282,text,timeout=100)
-bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
-bot_DA.send_document(-812533282,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
-bot_DA.stop_polling()
+# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
+# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+# bot_DA.send_message(-812533282,text,timeout=100)
+# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
+# bot_DA.send_document(-812533282,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
+# bot_DA.stop_polling()
 # 查看
 # print(shuju)
 # print(ip_data)
