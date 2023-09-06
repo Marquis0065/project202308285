@@ -21,7 +21,7 @@ pd.set_option('display.max_colwidth', None) #显示单元格完整信息
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
-day = -2
+day = -1
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 pages_user = 150
@@ -141,6 +141,7 @@ sheet1.range('A2').options(index=False,header = False).value = pd.DataFrame(shuj
 sheet_qishu.range('A2').options(index=False,header = False).value = pd.DataFrame(qishi)
 book.save()
 app.quit()
+print('今日数据获取完毕！')
 
 
 # 后续采集会员列表，首充记录、数据处理
@@ -149,7 +150,7 @@ print('读取今日数据。。')
 data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx',index_col=0)
 data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx','趋势分析')
 daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','数据')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','数据')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
@@ -546,7 +547,7 @@ for name in set(ip_data.iloc[:-1,:]['人员']):
 
 # 更新每日数据--------------------------------------------------------------------------------------------------
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
 
 sheet_shuju = book.sheets['数据']
 row_shuju = sheet_shuju.used_range.last_cell.row
@@ -560,7 +561,7 @@ book.save()
 book.close()
 #
 # # 添加条件格式
-wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
 ws = wb['数据']
 # redFill = PatternFill(start_color='EE1111',end_color='EE1111',fill_type='solid')
 redFill = Font(color='FF0000')
@@ -589,11 +590,11 @@ for row in source_range:
         target_cell.protection = cell.protection.copy()
         target_cell.alignment = cell.alignment.copy()
 # 保存工作簿
-wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
 wb.close()
 # 保存截图
 # pyperclip.copy('')
-book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx')
+book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
 sheet2_shuju = book2.sheets['数据']
 sheet2_ip =  book2.sheets['ip历史']
 sheet_tem = book2.sheets['临时']
@@ -635,7 +636,7 @@ bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
 bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
 bot_DA.send_message(-677235937,text,timeout=100)
 bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
-bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史.xlsx",'rb'),timeout=600)
+bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
 bot_DA.stop_polling()
 # 查看
 # print(shuju)
