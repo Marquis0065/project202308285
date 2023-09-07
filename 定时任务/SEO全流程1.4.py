@@ -21,7 +21,7 @@ pd.set_option('display.max_colwidth', None) #显示单元格完整信息
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
-day = -1
+day = -4
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 pages_user = 150
@@ -298,7 +298,7 @@ try:
 except:
     shuju.loc['Paddy','接受IP']=0
 try:
-    shuju.loc['Tony','发送IP']=data_today.loc['tonyb.com','IP']
+    shuju.loc['Tony','发送IP']=data_today.loc['tonyb.com','IP'] /2
 except:
     shuju.loc['Tony', '发送IP'] = 0
 try:
@@ -339,16 +339,16 @@ try:
 except:
     shuju.loc['Hugo','接受IP']=0
 try:
-    shuju.loc['Aber','发送IP']=data_today.loc['aber.com','IP']
+    shuju.loc['Aber','发送IP']=data_today.loc['aber.com','IP'] /2
 except:
     shuju.loc['Aber','发送IP']=0
 try:
     shuju.loc['Aber','接受IP']=data_today.loc['aber.bty','IP']
 except:
     shuju.loc['Aber','接受IP']=0
-shuju.loc['DK','发送IP']=data_today.loc['dk.com','IP']
+shuju.loc['DK','发送IP']=data_today.loc['dk.com','IP'] /2
 shuju.loc['DK','接受IP']=data_today.loc['dk.bty','IP']
-shuju.loc['Ben','发送IP']=data_today.loc['ben.com','IP']
+shuju.loc['Ben','发送IP']=data_today.loc['ben.com','IP'] /2
 shuju.loc['Ben','接受IP']=data_today.loc['ben.bty','IP']
 shuju.loc['当日汇总','发送IP']=shuju['发送IP'].sum()
 shuju.loc['当日汇总','接受IP']=shuju['接受IP'].sum()
