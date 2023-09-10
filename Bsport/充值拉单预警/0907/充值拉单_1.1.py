@@ -62,12 +62,11 @@ def job():
     session  = requests.Session()
     dic0 = {'充值日期':"createDate",'充值单号':"orderId",'用户层级':"userLevel",'账户名':"username",'姓名':"reallyName",'VIP等级':"vipLevel",'充值金额':"amount",'到账金额':"payAmount"}
     dic = {'充值日期':[],'充值单号':[],'用户层级':[],'账户名':[],'姓名':[],'VIP等级':[],'充值金额':[],'到账金额':[]}
-    for page in range(1,100):
-        print(f'第{page}页。。。')
+    for page in range(1,60):
         data = {
             'dateType':'1',
-            'startTime':1693929600000,
-            'endTime':1694015999999,
+            'startTime':int(time.time()-(24*60*60))*1000,
+            'endTime':int(time.time())*1000,
             'userType':'-1',
             'orderStatus':'0,1,2,3,4,5,6,7,8,9',
             'agentType':'-1',
@@ -93,25 +92,36 @@ def job():
     df.insert(1,'时间',df['充值日期'].map(lambda x:time.strftime("%H:%M")))
     df['充值日期']= df['充值日期'].map(lambda x:time.strftime("%Y-%m-%d"))
 
-
-    result = df.groupby('账户名').agg({'账户名':len,'充值金额':np.mean}).rename(columns={'账户名':'数量','充值金额':'平均充值金额'})
+    result = df.groupby('账户名').agg({'账户名':len,'充值金额':[np.max,np.mean],'VIP等级':np.mean})
     result.reset_index(inplace=True)
+    result = pd.DataFrame({'账户名':result.iloc[:,0],'数量':result.iloc[:,1],'最大金额':result.iloc[:,2],'平均金额':result.iloc[:,3],'VIP等级':result.iloc[:,4]})
+
+    result.set_index('账户名',inplace=True)
     result = result.loc[result['数量']>10,:]
     df.set_index('账户名',inplace=True)
-    result.set_index('账户名',inplace=True)
     print(result.sort_values('数量',ascending=False))
 
     # 写入数据
-    fw = open('result.txt','w')
+    fw = open('result2.txt','w')
+
     for name in result.index:
-        fw.write(f'会员等级：{df.loc[name,"VIP等级"]}\n')
+        fw.write(f'会员等级：{int(result.loc[name,"VIP等级"])}\n')
         fw.write(f'账号：{name}\n')
-        fw.write(f'次平均金额：{result.loc[name,"平均充值金额"].mean()}\n')
-        fw.write(f'24小时申请次数：{result.loc[name,"数量"]}\n')
-        fw.write('---------------------------------\n')
+        fw.write(f'最大充值金额：{int(result.loc[name,"最大金额"])}\n')
+        fw.write(f'平均充值金额：{int(result.loc[name,"平均金额"])}\n')
+        fw.write(f'24小时内申请次数：{result.loc[name,"数量"]}\n')
+        fw.write('---------------\n')
     fw.write(f'总计：{len(result.index)}')
     fw.close()
-    with open('result.txt','r') as fr:
+    with open('result2.txt','r') as fr:
         text = fr.read()
+    bot_da = telebot.TeleBot('6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0') # -953042672
+    #bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
+    # bot_a = telebot.TeleBot('6321364690:AAFvTiujKew0Fqi6OfL6awyM5Nx2LscJbVs')
+    # bot_da.send_message(-677235937,text)
+    bot_da.send_message(-996504819,text)
+    bot_da.stop_polling()
 
-job()
+while 1:
+    job()
+    time.sleep(600)

@@ -6,7 +6,7 @@ import requests
 import json
 import pandas as pd
 import datetime
-day = -1
+day = 0
 # (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d')
 shuju = {'domain':[],
                       '日期':[],
@@ -20,21 +20,22 @@ qishi = {'domain':[],
          'uv':[],
          'ip':[]}
 
-url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
-response = requests.get(url_siteid)
-# jsonpath.jsonpath(json.loads(response.text),'$..site_id')
-# jsonpath.jsonpath(json.loads(response.text),'$..domain')
-dic_website = {}
-for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
-    dic_website[k]=v
-
+# url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=24.675734f72d0e4eca2188e368bb9871be.2592000.1696930532.282335-38761358'
+# response = requests.get(url_siteid)
+# # jsonpath.jsonpath(json.loads(response.text),'$..site_id')
+# # jsonpath.jsonpath(json.loads(response.text),'$..domain')
+# dic_website = {}
+# for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
+#     dic_website[k]=v
+with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
+    dic_website=f.read()
 # 分别获取各网站数据
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx')
 sheet1 = book.sheets['网站概况']
 sheet_qishu = book.sheets['趋势分析']
 for k in dic_website:
-    url_web = f'https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w&site_id={dic_website[k]}&method=overview/getTimeTrendRpt&start_date={20230903}&end_date={20230903}&metrics=pv_count,visitor_count,ip_count'
+    url_web = f'https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=24.675734f72d0e4eca2188e368bb9871be.2592000.1696930532.282335-38761358&site_id={dic_website[k]}&method=overview/getTimeTrendRpt&start_date={20230903}&end_date={20230903}&metrics=pv_count,visitor_count,ip_count'
     response = requests.get(url_web)
     response.encoding='utf8'
     # 趋势数据
