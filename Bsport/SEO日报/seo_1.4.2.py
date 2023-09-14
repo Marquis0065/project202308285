@@ -17,17 +17,18 @@ from openpyxl.styles import Color, PatternFill, Font, Border
 from PIL import ImageGrab
 import pyperclip
 
-# pd.set_option('display.max_colwidth', None) #显示单元格完整信息
-# pd.set_option('display.max_columns', None)
-# pd.set_option('display.max_rows', None)
+pd.set_option('display.max_colwidth', None) #显示单元格完整信息
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 
 day = -1
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
+last_date = (datetime.datetime.now()+datetime.timedelta(days=day-1)).strftime('%Y%m%d')
 pages_user = 150
 pages_fircharge = 60
-# access_token = '121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
-access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
+access_token = '121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
+# access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
 
 url = 'http://fundmng.bsportsadmin.com/api/manage/fund/withdraw/record/list/history'
 session = requests.session()
@@ -383,6 +384,7 @@ data_today3.rename(columns = {'seo变化数据团队':'人员2'},inplace=True)
 shuju  = pd.merge(shuju,data_today3,how='left',on='人员2')
 shuju['当日注册激活率(%)'] = round(shuju['当日注册并开户']/shuju['注册']*100,2)
 
+
 #------------
 # his_data  = pd.read_csv(r'C:\Users\User\Desktop\SEO\SEO每日更新_814.csv',encoding='gbk')
 his_data['日期']= pd.to_datetime(his_data['日期'])
@@ -430,8 +432,8 @@ shuju.loc[:,'对比昨天(总IP)':'对比前7天均值(总开户)']=shuju.loc[:,
 shuju['注册'] = shuju['注册'].astype('int64')
 shuju['开户'] = shuju['开户'].astype('int64')
 shuju['当日注册并开户'] = shuju['当日注册并开户'].astype('int64')
-print(shuju.info())
-print(shuju)
+
+
 for i in shuju.iloc[:,4:].columns:
     shuju.loc['当日汇总',i]=shuju[i].sum()
 # 重置三个率
@@ -520,14 +522,14 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
     f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"]))}\n')
     f.write(f'较前一天总IP下降人员为：{str(list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"]))}')
 # 增加%
-# shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
-# shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
-# shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
+shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
+shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
+shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
 shuju = shuju.append(header_shuju)
 header_ip =pd.DataFrame({'日期':'日期',
                          '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
 ip_data= ip_data.append(header_ip)
-
+print(shuju)
 #----------------------------------------------
 ip_DATA= pd.DataFrame()
 for name in set(ip_data.iloc[:-1,:]['人员']):
@@ -583,17 +585,24 @@ wb.close()
 # 保存截图
 # pyperclip.copy('')
 book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
+s_book = app.books.open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{last_date}.xlsx')
+s_sheet1 = s_book.sheets['Sheet1']
+s_sheet2 = s_book.sheets['Sheet2']
 sheet2_shuju = book2.sheets['数据']
 sheet2_ip =  book2.sheets['ip历史']
 sheet_tem = book2.sheets['临时']
 # 复制源Excel的区域到目标Excel的区域
 source_range = sheet2_shuju.range(f'A{row_shuju+1}:V{row_shuju+10}')
+
 target_range = sheet_tem.range('A3:V12')
 source_range.copy()
 target_range.paste()
 book2.save()
+# 粘贴至发送表格
+s_sheet1.range('A2:v11').paste()
+
 # 复制图片
-pyperclip.copy('')
+# pyperclip.copy('')
 range_shuju = sheet_tem.range('A1:V12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
@@ -607,6 +616,10 @@ delete_row(sheet2_shuju,row_shuju+11)
 time.sleep(2)
 
 range_IP = sheet2_ip.range(f'A{row_ip}:P{row_ip+71}')
+#粘贴到发送表格
+range_IP.copy()
+s_sheet2.range('A1:P72').paste()
+s_book.save(fr'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx')
 range_IP.api.CopyPicture()
 img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_IP.save(r'C:\Users\User\Desktop\SEO\截图文件\IP.png')  # 保存图片
@@ -615,17 +628,19 @@ time.sleep(2)
 book2.save()
 book2.close()
 app.quit()
+#新增加发送表格
 
 # 发送到群
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
-# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937
-# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
-# bot_DA.send_message(-812533282,text,timeout=100)
-# bot_DA.send_photo(-812533282,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
-# bot_DA.send_document(-812533282,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
-# bot_DA.stop_polling()
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+# bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+bot_DA.send_message(-677235937,text,timeout=100)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
+# bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
+bot_DA.send_document(-677235937,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
+bot_DA.stop_polling()
 # 查看
 # print(shuju)
 # print(ip_data)

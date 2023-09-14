@@ -18,7 +18,7 @@ url2 = 'http://localhost:9881/swagger-ui/index.html#/Mason%20Excel%20%E4%BA%A7%E
 # # browser = driver.get(url = url2)
 # browser = webdriver.Chrome(options=chrome_options)
 # browser.get(url2)
-path = r'C:\Users\User\IdeaProjects\project1\Bsport\SEO日报\chromedriver.exe'
+path = r'/Bsport/SEO日报/chromedriver.exe'
 browser = webdriver.Chrome()
 # button = browser.find_element(By.XPATH,'//div[@class="try-out"]/button')
 # button.click()

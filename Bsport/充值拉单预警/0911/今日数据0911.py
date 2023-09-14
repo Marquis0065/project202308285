@@ -89,6 +89,52 @@ dic_website = {}
 for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
     dic_website[k]=v
 # with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
-#     dic_website=f.read()
-# print(dic_website)
-print(dic_website)
+#     dic_website=eval(f.read())
+# print(type(dic_website))
+# 分别获取各网站数据
+app = xw.App(visible=False,add_book=False)
+book = app.books.open(r'C:\Users\User\Desktop\SEO\12-18\今日数据(py接口).xlsx')
+sheet1 = book.sheets['网站概况']
+# sheet1.range('A2:E2').expand('down').clear_contents()
+sheet_qishu = book.sheets['趋势分析']
+# sheet_qishu.range('A2:F2').expand('down').clear_contents()
+
+session_web = requests.Session()
+
+for k in dic_website:
+    url_web = f'https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token={access_token}&site_id={dic_website[k]}&method=overview/getTimeTrendRpt&start_date={start_date}&end_date={end_date}&metrics=pv_count,visitor_count,ip_count'
+    response = session_web.get(url_web)
+    print(k,response.status_code)
+    response.encoding='utf8'
+    # 趋势数据
+    print(json.loads(response.text))
+    for i in range(24):
+        qishi['domain'].append(k)
+        qishi['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
+        qishi['时间'].append(i)
+        qishi['pv'].append(json.loads(response.text)['result']['items'][1][i][0])
+        qishi['uv'].append(json.loads(response.text)['result']['items'][1][i][1])
+        qishi['ip'].append(json.loads(response.text)['result']['items'][1][i][2])
+    result_pv_uv_ip = []
+    # 遍历列表并相加元素
+    for i in range(3):
+        sum = 0
+        for j in range(len(json.loads(response.text)['result']['items'][1])):
+            try:
+                sum += json.loads(response.text)['result']['items'][1][j][i]
+            except:
+                sum +=0
+        result_pv_uv_ip.append(sum)
+
+    shuju_website['domain'].append(k)
+    shuju_website['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
+    shuju_website['pv'].append(result_pv_uv_ip[0])
+    shuju_website['uv'].append(result_pv_uv_ip[1])
+    shuju_website['ip'].append(result_pv_uv_ip[2])
+    time.sleep(1)
+    print(shuju_website)
+sheet1.range('A2').options(index=False,header = False).value = pd.DataFrame(shuju_website)
+sheet_qishu.range('A2').options(index=False,header = False).value = pd.DataFrame(qishi)
+book.save()
+app.quit()
+print('今日数据获取完毕！')
