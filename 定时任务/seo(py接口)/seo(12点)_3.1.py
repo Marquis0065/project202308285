@@ -18,13 +18,15 @@ import pyperclip
 import warnings
 warnings.filterwarnings('ignore')
 
-
+# pd.set_option('display.max_colwidth', None) #显示单元格完整信息
+# pd.set_option('display.max_columns', None)
+# pd.set_option('display.max_rows', None)
 
 day = 0
 pages_user = 150
 pages_fircharge = 60
-access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
-# access_token ='121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
+access_token ='121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
+# access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 
@@ -82,7 +84,7 @@ qishi = {'domain':[],
          'uv':[],
          'ip':[]}
 
-url_siteid = f'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token={access_token}'
+url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
 response = requests.get(url_siteid)
 
 dic_website = {}
@@ -135,16 +137,18 @@ book.save()
 app.quit()
 print('今日数据获取完毕！')
 
+
 # 后续采集会员列表，首充记录、数据处理
-# 读取今日数据，及历史数据
+# 读取运行jar包的数据，及历史数据
 data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\12-18\今日数据(py接口).xlsx')
 data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\12-18\今日数据(py接口).xlsx','趋势分析')
 daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx','数据(18点)_3')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx','数据(12点)_3')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
 url_user = 'http://fundmng.bsportsadmin.com/api/manage/user/maintain/user/list'
+session = requests.session()
 
 # 采集首存报表
 dic_fir = dict({'会员名':[], '所属代理':[],'注册时间':[], '交易时间':[], '交易类型':[], '币种':[], '金额':[]})
@@ -444,25 +448,71 @@ be_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(da
 shuju2 = shuju.copy()
 shuju2= shuju2.rename(columns={'开户':'开户2','注册':'注册2','接收IP':'接收IP2','对比昨天(总开户)':'开户','对比昨天(总注册)':'注册','对比昨天(接收IP)':'接收IP','对比昨天(总IP)':'总IP'})
 
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','w') as f:
-    f.write('#SEO激活监控18点\n')
-    f.write(f'截止今日18点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
+# 写入txt发送文本
+aip_7 = list(shuju[:-1].loc[shuju['对比前7天均值(总IP)']<-99,:].index)
+rip_7 = list(shuju[:-1].loc[shuju['对比前7天均值(接收IP)']<-99,:].index)
+zhuce_7 = list(shuju[:-1].loc[shuju['对比前7天均值(总注册)']<-4,:].index)
+acc_7 = list(shuju[:-1].loc[shuju['对比前7天均值(总开户)']<-4,:].index)
+zhuanhuali = list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"])
+d_zhuce = int(shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0])
+d_acc = int(shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0])
+d_zhuanhua = round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)
+
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12-3.txt','w') as f:
+    f.write('#SEO激活监控12点\n')
+    f.write(f'截止今日12点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
             f'转化率 : {shuju.loc["当日汇总","转化率(%)"]}%\n')
-    f.write(f"对比昨日18点,   注册:  {int(be_data.loc[be_data['人员']=='当日汇总','注册'].values[0])} ,开户:  {int(be_data.loc[be_data['人员']=='当日汇总','开户'].values[0])}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
-    f.write(f'同比昨日,   注册变动:  {int(shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]=="当日汇总","注册"].values[0])} ,开户变动:  {int(shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0])}，转化率变动 : {round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)}%\n')
+    f.write(f"对比昨日12点,   注册:  {int(be_data.loc[be_data['人员']=='当日汇总','注册'].values[0])} ,开户:  {int(be_data.loc[be_data['人员']=='当日汇总','开户'].values[0])}，整体转化率 : {be_data.loc[be_data['人员']=='当日汇总','转化率(%)'].values[0]}%\n")
+    f.write(f'同比昨日,  ')
+    if d_zhuce>0:
+        f.write(f'注册 上升：{abs(d_zhuce)} 个,')
+    if d_zhuce<0:
+        f.write(f'注册 下降：{abs(d_zhuce)} 个,')
+    if d_zhuce==0:
+        f.write(f'注册 无变化')
+    if d_acc>0:
+        f.write(f'开户 上升：{abs(d_acc)} 个,')
+    if d_acc<0:
+        f.write(f'开户 下降：{abs(d_acc)} 个,')
+    if d_acc==0:
+        f.write(f'开户 无变化')
+    if d_zhuanhua>0:
+        f.write(f'转化率 上升：{abs(d_zhuanhua)}%')
+    if d_zhuanhua<0:
+        f.write(f'开户 下降：{abs(d_zhuanhua)}%')
+    if d_zhuanhua==0:
+        f.write(f'转化率 无变化')
     f.write('\n')
-    f.write(f'人员下列指标显著下降：\n')
-    for i in range(9):
-        if ((shuju2.iloc[:,9:15].iloc[i,:]< -99).sum() + (shuju2.iloc[:,15:].iloc[i,:]< -4).sum())>0:
-            f.write(shuju2.iloc[i,:]['人员'])
-            f.write(', ')
-            f.write(str(list(shuju2.iloc[:,9:15].iloc[i,:][shuju2.iloc[:,9:15].iloc[i,:]< -99].index)+ \
-                        list(shuju2.iloc[:,15:].iloc[i,:][shuju2.iloc[:,15:].iloc[i,:]< -4].index))+'\n')
     f.write('\n')
-    f.write(f'转化率<30%的人员：{str(list(shuju[:-1].loc[shuju[:-1]["转化率(%)"]<30,:]["人员"]))}')
+    f.write(f'对比前7天均值明显下降:\n')
+    if len(aip_7)>0:
+        f.write(f'总IP：')
+        for i in aip_7:
+            f.write(f'{i}{", "}')
+        f.write('\n')
+    if len(rip_7)>0:
+        f.write(f'接收IP：')
+        for i in rip_7:
+            f.write(f'{i}{", "}')
+        f.write('\n')
+    if len(zhuce_7)>0:
+        f.write(f'总注册：')
+        for i in zhuce_7:
+            f.write(f'{i}{", "}')
+        f.write('\n')
+    if len(acc_7)>0:
+        f.write(f'总开户：')
+        for i in acc_7:
+            f.write(f'{i}{", "}')
+        f.write('\n')
+    f.write('\n')
+    if len(zhuanhuali)>0:
+        f.write(f'转化率<30%：')
+        for i in zhuanhuali:
+            f.write(f'{i}{", "}')
+
 
 # 增加行末表头
-
 # 增加%
 # shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 # shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
@@ -472,7 +522,7 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','w') as f:
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 
-sheet_shuju = book.sheets['数据(18点)_3']
+sheet_shuju = book.sheets['数据(12点)_3']
 row_shuju = sheet_shuju.used_range.last_cell.row
 
 sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = shuju
@@ -487,7 +537,7 @@ book.close()
 
 # # 添加条件格式
 wb = load_workbook(r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
-ws = wb['数据(18点)_3']
+ws = wb['数据(12点)_3']
 ws_tem = wb['临时']
 redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'J{row_shuju +1}:U{row_shuju+10}',
@@ -507,11 +557,11 @@ tem_shuju = book2.sheets['临时']
 # sheet2_shuju = book2.sheets['数据(12点)_3']
 #
 # 截图
-pyperclip.copy('')
+# pyperclip.copy('')
 range_shuju = tem_shuju.range('A1:U12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
-img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png')  # 保存图片
+img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-3.png')  # 保存图片
 # pyperclip.copy('')
 
 time.sleep(2)
@@ -520,15 +570,14 @@ book2.save()
 book2.close()
 app.quit()
 # # 发送到群
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','r') as f:
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12-3.txt','r') as f:
     text = f.read()
 
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png','rb'))
-# bot_DA.send_message(-677235937,'#SEO激活监控12点')
-bot_DA.send_message(-321785338,text)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-3.png','rb'),timeout=100)
+# bot_DA.send_message(-677235937,'#SEO激活监控12点')  "鲲鹏": -321785338
+bot_DA.send_message(-677235937,text,timeout=100)
 bot_DA.stop_polling()
-# 查看  -677235937, -812533282  鲲鹏： -321785338
-
-print('发送完毕。')
+# 查看
+# print(shuju)
 
