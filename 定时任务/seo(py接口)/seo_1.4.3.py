@@ -28,8 +28,8 @@ end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m
 last_date = (datetime.datetime.now()+datetime.timedelta(days=day-1)).strftime('%Y%m%d')
 pages_user = 150
 pages_fircharge = 60
-access_token = '121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
-# access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
+# access_token = '121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
+access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
 
 url = 'http://fundmng.bsportsadmin.com/api/manage/fund/withdraw/record/list/history'
 session = requests.session()
@@ -534,10 +534,12 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
         f.write(f'较前天总IP下降：')
         for i in aip:
             f.write(f'{i}{", "}')
+
 # 增加%
 shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
 shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
+
 shuju = shuju.append(header_shuju)
 header_ip =pd.DataFrame({'日期':'日期',
                          '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
@@ -577,6 +579,13 @@ ws.conditional_formatting.add(f'K{row_shuju +1}:V{row_shuju +10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
                                                         font=redFill))
+#增加一位小点+%
+# ws['F402'].number_format = '0.0%'
+for i in range(1,11):
+    ws[f'F{row_shuju +i}'].number_format = '0.0%'
+    ws[f'H{row_shuju +i}'].number_format = '0.0%'
+    ws[f'J{row_shuju +i}'].number_format = '0.0%'
+
 # ip历史增加颜色
 ws_ip = wb['ip历史']
 source_range = ws_ip[f'A{row_ip-72}:P{row_ip-1}']
@@ -615,7 +624,7 @@ book2.save()
 s_sheet1.range('A2:v11').paste()
 
 # 复制图片
-# pyperclip.copy('')
+pyperclip.copy('')
 range_shuju = sheet_tem.range('A1:V12')
 range_shuju.api.CopyPicture()
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
@@ -647,7 +656,7 @@ app.quit()
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
 # bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") seo:-812533282  -677235937  "鲲鹏": -321785338
+# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
 # bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
 # bot_DA.send_message(-677235937,text,timeout=100)
 # bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)

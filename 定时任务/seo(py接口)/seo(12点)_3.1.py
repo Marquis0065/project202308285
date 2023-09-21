@@ -256,7 +256,7 @@ user = pd.DataFrame(dic_user)
 print('用户列表行列:',user.shape)
 # 删除测试账号
 user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')&~user['姓名'].str.contains('测试') \
-            &~user['姓名'].str.contains('cheshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('cheshi') \
+            &~user['姓名'].str.contains('ceshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('ceshi') \
             &~user['备注'].str.contains('测试')&~user['备注'].str.contains('试玩')&~user['备注'].str.contains('晒单')]
 print('去重后：',user.shape)
 
@@ -574,9 +574,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12-3.txt','r') as f:
     text = f.read()
 
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-3.png','rb'),timeout=100)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-3.png','rb'),timeout=300)
 # bot_DA.send_message(-677235937,'#SEO激活监控12点')  "鲲鹏": -321785338
-bot_DA.send_message(-677235937,text,timeout=100)
+bot_DA.send_message(-677235937,text,timeout=300)
 bot_DA.stop_polling()
 # 查看
 # print(shuju)

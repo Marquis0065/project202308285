@@ -251,10 +251,10 @@ def job():
         bot_da.stop_polling()
     else:
         bot_da = telebot.TeleBot('6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0')
-        bot_da.send_message(6279115720,'---------充值拉单')
+        bot_da.send_message(6279115720,'----2-----充值拉单')
         bot_da.stop_polling()
 
 while 1:
     job()
-    time.sleep(300)
+    time.sleep(600)
 

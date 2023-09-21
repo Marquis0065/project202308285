@@ -249,7 +249,7 @@ user = pd.DataFrame(dic_user)
 print('用户列表行列:',user.shape)
 # 删除测试账号
 user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')&~user['姓名'].str.contains('测试') \
-            &~user['姓名'].str.contains('cheshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('cheshi') \
+            &~user['姓名'].str.contains('ceshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('ceshi') \
             &~user['备注'].str.contains('测试')&~user['备注'].str.contains('试玩')&~user['备注'].str.contains('晒单')]
 print('去重后：',user.shape)
 
@@ -451,7 +451,7 @@ d_zhuce = int(shuju.loc["当日汇总","注册"]-be_data.loc[be_data["人员"]==
 d_acc = int(shuju.loc["当日汇总","开户"]-be_data.loc[be_data["人员"]=="当日汇总","开户"].values[0])
 d_zhuanhua = round(shuju.loc["当日汇总","转化率(%)"]-be_data.loc[be_data["人员"]=="当日汇总","转化率(%)"].values[0],2)
 
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','w') as f:
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18-3.txt','w') as f:
     f.write('#SEO激活监控18点\n')
     f.write(f'截止今日18点,   注册:  {shuju.loc["当日汇总","注册"]} ,开户:  {shuju.loc["当日汇总","开户"]}，整体'
             f'转化率 : {shuju.loc["当日汇总","转化率(%)"]}%\n')
@@ -563,15 +563,15 @@ book2.save()
 book2.close()
 app.quit()
 # # 发送到群
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18.txt','r') as f:
+with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18-3.txt','r') as f:
     text = f.read()
 
-# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png','rb'))
-# # bot_DA.send_message(-677235937,'#SEO激活监控12点')
-# bot_DA.send_message(-321785338,text)
-# bot_DA.stop_polling()
-# 查看  -677235937, -812533282  鲲鹏流量： -321785338
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png','rb'),timeout=300)
+# bot_DA.send_message(-677235937,'#SEO激活监控12点')
+bot_DA.send_message(-677235937,text,timeout=300)
+bot_DA.stop_polling()
+# 查看  -677235937, seo:  -812533282  鲲鹏流量： -321785338
 
 # print('发送完毕。')
 

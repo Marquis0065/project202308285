@@ -22,7 +22,7 @@ pd.set_option('display.max_colwidth', None) #显示单元格完整信息
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
-day = -1
+day = -10
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 last_date = (datetime.datetime.now()+datetime.timedelta(days=day-1)).strftime('%Y%m%d')
@@ -143,8 +143,8 @@ print('今日数据获取完毕！')
 print('读取今日数据。。')
 data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx',index_col=0)
 data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx','趋势分析')
-daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','代理总表')
-his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','数据')
+daili = pd.read_excel(r'C:\Users\User\Desktop\其它\日常任务\数据+ip历史9-10.xlsx','代理总表')
+his_data  = pd.read_excel(r'C:\Users\User\Desktop\其它\日常任务\数据+ip历史9-10.xlsx','数据')
 
 # 采集会员列表和会员存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
@@ -157,7 +157,7 @@ dic_fir = dict({'会员名':[], '所属代理':[],'注册时间':[], '交易时�
 yesterday = datetime.date.today() + datetime.timedelta(days=day)
 yesterday_start_time = int(time.mktime(time.strptime(str(yesterday), '%Y-%m-%d')))
 # 昨天结束时间戳
-yesterday_end_time = int(time.mktime(time.strptime(str(datetime.date.today()), '%Y-%m-%d'))) - 1
+yesterday_end_time = int(time.mktime(time.strptime(str(datetime.date.today() + datetime.timedelta(days=day+1)), '%Y-%m-%d'))) - 1
 
 #---------------------token----------------------
 # 采取token
@@ -539,9 +539,9 @@ shuju['注册率(%)'] =shuju['注册率(%)'].apply(lambda x: str(x)+'%')
 shuju['转化率(%)'] =shuju['转化率(%)'].apply(lambda x: str(x)+'%')
 shuju['当日注册激活率(%)'] =shuju['当日注册激活率(%)'].apply(lambda x: str(x)+'%')
 shuju = shuju.append(header_shuju)
-header_ip =pd.DataFrame({'日期':'日期',
-                         '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
-ip_data= ip_data.append(header_ip)
+# header_ip =pd.DataFrame({'日期':'日期',
+#                          '人员':'人员','指标':'指标', '总计':'总计', '0-2':'0-2时', '2-4':'2-4时', '4-6':'4-6时', '6-8':'6-8时', '8-10':'8-10时', '10-12':'10-12时', '12-14':'12-14时', '14-16':'14-16时', '16-18':'16-18时', '18-20':'18-20时', '20-22':'20-22时', '22-24':'22-24时'},index=[0])
+# ip_data= ip_data.append(header_ip)
 print(shuju)
 #----------------------------------------------
 ip_DATA= pd.DataFrame()
@@ -550,7 +550,7 @@ for name in set(ip_data.iloc[:-1,:]['人员']):
 
 # 更新每日数据--------------------------------------------------------------------------------------------------
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
+book = app.books.open(r'C:\Users\User\Desktop\其它\日常任务\数据+ip历史9-10.xlsx')
 
 sheet_shuju = book.sheets['数据']
 row_shuju = sheet_shuju.used_range.last_cell.row
@@ -562,9 +562,10 @@ sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = sh
 sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_DATA
 book.save()
 book.close()
+app.quit()
 #
 # # 添加条件格式
-wb = load_workbook(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
+wb = load_workbook(r'C:\Users\User\Desktop\其它\日常任务\数据+ip历史9-10.xlsx')
 ws = wb['数据']
 # redFill = PatternFill(start_color='EE1111',end_color='EE1111',fill_type='solid')
 redFill = Font(color='FF0000')
@@ -576,7 +577,7 @@ redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'K{row_shuju +1}:V{row_shuju +10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
-                                                        font=redFill))
+                                                         font=redFill))
 # ip历史增加颜色
 ws_ip = wb['ip历史']
 source_range = ws_ip[f'A{row_ip-72}:P{row_ip-1}']
@@ -593,61 +594,61 @@ for row in source_range:
         target_cell.protection = cell.protection.copy()
         target_cell.alignment = cell.alignment.copy()
 # 保存工作簿
-wb.save(filename=r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
+wb.save(filename=r'C:\Users\User\Desktop\其它\日常任务\数据+ip历史9-10.xlsx')
 wb.close()
 # 保存截图
 # pyperclip.copy('')
-book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx')
-s_book = app.books.open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{last_date}.xlsx')
-s_sheet1 = s_book.sheets['Sheet1']
-s_sheet2 = s_book.sheets['Sheet2']
-sheet2_shuju = book2.sheets['数据']
-sheet2_ip =  book2.sheets['ip历史']
-sheet_tem = book2.sheets['临时']
-# 复制源Excel的区域到目标Excel的区域
-source_range = sheet2_shuju.range(f'A{row_shuju+1}:V{row_shuju+10}')
-
-target_range = sheet_tem.range('A3:V12')
-source_range.copy()
-target_range.paste()
-book2.save()
-# 粘贴至发送表格
-s_sheet1.range('A2:v11').paste()
-
-# 复制图片
-# pyperclip.copy('')
-range_shuju = sheet_tem.range('A1:V12')
-range_shuju.api.CopyPicture()
-img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
-img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png')  # 保存图片
-# 删除行末表头
-
-def delete_row(sheet, row_index):
-    range_obj = sheet.range(f'A{row_index}:A{row_index}')
-    range_obj.api.EntireRow.Delete()
-delete_row(sheet2_shuju,row_shuju+11)
-time.sleep(2)
-
-range_IP = sheet2_ip.range(f'A{row_ip}:P{row_ip+71}')
-#粘贴到发送表格
-range_IP.copy()
-s_sheet2.range('A1:P72').paste()
-s_book.save(fr'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx')
-range_IP.api.CopyPicture()
-img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
-img_IP.save(r'C:\Users\User\Desktop\SEO\截图文件\IP.png')  # 保存图片
-
-time.sleep(2)
-book2.save()
-book2.close()
-app.quit()
+# book2 = app.books.open(r'C:\Users\User\Desktop\SEO\数据+ip历史9.1~9.10.xlsx')
+# s_book = app.books.open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{last_date}.xlsx')
+# s_sheet1 = s_book.sheets['Sheet1']
+# s_sheet2 = s_book.sheets['Sheet2']
+# sheet2_shuju = book2.sheets['数据']
+# sheet2_ip =  book2.sheets['ip历史']
+# sheet_tem = book2.sheets['临时']
+# # 复制源Excel的区域到目标Excel的区域
+# source_range = sheet2_shuju.range(f'A{row_shuju+1}:V{row_shuju+10}')
+#
+# target_range = sheet_tem.range('A3:V12')
+# source_range.copy()
+# target_range.paste()
+# book2.save()
+# # 粘贴至发送表格
+# s_sheet1.range('A2:v11').paste()
+#
+# # 复制图片
+# # pyperclip.copy('')
+# range_shuju = sheet_tem.range('A1:V12')
+# range_shuju.api.CopyPicture()
+# img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
+# img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png')  # 保存图片
+# # 删除行末表头
+#
+# def delete_row(sheet, row_index):
+#     range_obj = sheet.range(f'A{row_index}:A{row_index}')
+#     range_obj.api.EntireRow.Delete()
+# delete_row(sheet2_shuju,row_shuju+11)
+# time.sleep(2)
+#
+# range_IP = sheet2_ip.range(f'A{row_ip}:P{row_ip+71}')
+# #粘贴到发送表格
+# range_IP.copy()
+# s_sheet2.range('A1:P72').paste()
+# s_book.save(fr'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx')
+# range_IP.api.CopyPicture()
+# img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
+# img_IP.save(r'C:\Users\User\Desktop\SEO\截图文件\IP.png')  # 保存图片
+#
+# time.sleep(2)
+# book2.save()
+# book2.close()
+# app.quit()
 #新增加发送表格
 
 # 发送到群
-with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
-    text = f.read()
+# with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
+#     text = f.read()
 # bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") seo:-812533282  -677235937  "鲲鹏": -321785338
+# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
 # bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
 # bot_DA.send_message(-677235937,text,timeout=100)
 # bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)

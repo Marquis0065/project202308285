@@ -7,6 +7,9 @@ import hmac, base64, struct, hashlib
 import platform
 from selenium import webdriver
 
+tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d')))-1
+
 submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
 header0 = {
     'Accept':'application/json, text/plain, */*',
@@ -103,8 +106,10 @@ data_1 = {
     'minAmount': 10000,
     'coinCode': 'CNY',
     'startTime': day_time,
-    'endTime': 1725206399999
+    'endTime': today_end_time*1000+999
 }
+print('day_time:',day_time)
+print('today_end_time:',today_end_time*1000+999)
 #获取页码
 response_1 = session.post(url =url,data=data_1,headers=header)
 pages = json.loads(response_1.text)['data']['pages']
@@ -126,7 +131,7 @@ for i in range(1, pages+1):
         'minAmount': 10000,
         'coinCode': 'CNY',
         'startTime': day_time,
-        'endTime': 1725206399999
+        'endTime': today_end_time*1000+999
     }
 
     response = session.post(url=url, data=data, headers=header,timeout=100)
@@ -136,8 +141,9 @@ for i in range(1, pages+1):
     obj = json.loads(response.text)
 
     for i in obj['data']['list']:
-        if (i["durationEnd"] == 0) and (i["vipLevel"] > 5) and (
-                now_time - (i["createDate"] // 1000) >= 7200):
+        if (i["coin"] =='CNY') and (i["actualAmount"] ==0) and (i["amount"] >=10000) \
+                and (i["durationEnd"] == 0) and (i["vipLevel"] > 5) \
+                and (now_time - (i["createDate"] // 1000) >= 7200):
             dict_orderID[i["orderId"]] = now_time - i["createDate"] // 1000
 
 
@@ -187,6 +193,10 @@ def job():
     # day_current = (now_current - (now_time-time.timezone)%86400)*1000
     yesterday = datetime.date.today() + datetime.timedelta(days=-1)
     yesterday_start_time=int(time.mktime(time.strptime(str(yesterday), '%Y-%m-%d')))
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    today_end_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d')))-1
+    print('yesterday_start_time:',yesterday_start_time*1000)
+    print('today_end_time:',today_end_time)
 
     sum_ = 0
     # 重新获取页码
@@ -203,8 +213,8 @@ def job():
         'userType': '-1',
         'minAmount': 10000,
         'coinCode': 'CNY',
-        'startTime': yesterday_start_time,
-        'endTime': 1725206399999
+        'startTime': yesterday_start_time*1000,
+        'endTime': today_end_time*1000+999
     }
     #获取页码
     response_1 = session.post(url =url,data=data_11,headers=header)
@@ -225,7 +235,7 @@ def job():
             'minAmount': 10000,
             'coinCode': 'CNY',
             'startTime': yesterday_start_time*1000,
-            'endTime': 1725206399999
+            'endTime': today_end_time*1000+999
         }
 
         response = session.post(url=url, data=data, headers=header,timeout=100)
@@ -235,7 +245,8 @@ def job():
         obj = json.loads(response.text)
 
         for i in obj['data']['list']:
-            if (i["durationEnd"] == 0) and (i["vipLevel"] > 5) and (now_current - i["createDate"] // 1000 >= 7200):
+            if (i["coin"] =='CNY') and (i["actualAmount"] ==0) and (i["amount"] >=10000) \
+                    and (i["durationEnd"] == 0) and (i["vipLevel"] > 1) and (now_current - i["createDate"] // 1000 >= 7200):
                 try:
                     print([i["vipLevel"], i["reallyName"], i['username'], '金额:{}'.format(int(i["amount"])),
                            '风控审核时间：'+str((divmod((now_current * 1000) - i["riskApvTime"], 60000))[0]) + '分钟',
@@ -298,12 +309,12 @@ def job():
         #bot_da.send_message(-953042672, '姓名、账号、提款金额、提款时间已超出60分钟请协助推进！')
         # bot_da.send_message(-953042672, text,timeout=1000)
         # bot_da.send_message(6255966584, text,timeout=1000)
-        # 提款：  -812533282
+        # seo测试群：  -812533282；    提款： -953042672
     else:
         #bot_da.send_message(-677235937, '大客户提款预警当前无数据：'+time.strftime('%H:%M:%S',time.localtime()))
-        bot_da.send_message(6255966584, '当前无数据',timeout=1000)
-        bot_da.send_message(6279115720, '当前无数据',timeout=1000)
-        print('当前无数据：'+time.strftime('%H:%M:%S',time.localtime()))
+        bot_a.send_message(6255966584, '当前无数据-IDEA',timeout=1000)
+        bot_a.send_message(6279115720, '当前无数据-IDEA',timeout=1000)
+        # print('当前无数据：'+time.strftime('%H:%M:%S',time.localtime()))
         # bot_da.send_message(6255966584, '当前无数据',timeout=1000)
         # bot_da.send_message(6279115720, '当前无数据',timeout=1000)
     bot_da.stop_polling()

@@ -7,7 +7,7 @@ import json
 import pandas as pd
 import datetime
 
-day = -1
+day = 0
 access_token = '121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
@@ -24,20 +24,20 @@ qishi = {'domain':[],
          'uv':[],
          'ip':[]}
 
-# url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=24.f6c93d2eb8f209b114cd9acfeb6d1765.2592000.1697001874.282335-38761358'
-# response = requests.get(url_siteid)
-# response.encoding='utf-8'
-# print(response.text)
-# jsonpath.jsonpath(json.loads(response.text),'$..site_id')
-# jsonpath.jsonpath(json.loads(response.text),'$..domain')
-# dic_website = {}
-# for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
-#     dic_website[k]=v
-with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
-    dic_website=eval(f.read())
+url_siteid = f'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token={access_token}'
+response = requests.get(url_siteid)
+response.encoding='utf-8'
+print(response.text)
+jsonpath.jsonpath(json.loads(response.text),'$..site_id')
+jsonpath.jsonpath(json.loads(response.text),'$..domain')
+dic_website = {}
+for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
+    dic_website[k]=v
+# with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
+#     dic_website=eval(f.read())
 # 分别获取各网站数据
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\SEO\seo数据(当天)\今日数据(当天).xlsx')
+book = app.books.open(r'C:\Users\User\Desktop\今日数据(当天).xlsx')
 sheet_web = book.sheets['网站概况']
 sheet_qishu = book.sheets['趋势分析']
 for k in dic_website:
@@ -71,7 +71,7 @@ for k in dic_website:
     time.sleep(1)
 sheet_web.range('A2').options(index=False,header = False).value = pd.DataFrame(shuju)
 sheet_qishu.range('A2').options(index=False,header = False).value = pd.DataFrame(qishi)
-book.save(rf'C:\Users\User\Desktop\SEO\seo数据(当天)\今日数据-{start_date}.xlsx')
+book.save()
 app.quit()
 print(pd.DataFrame(qishi))
 
