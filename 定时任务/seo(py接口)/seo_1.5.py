@@ -73,17 +73,17 @@ def get_google_code(secret):
 
 ## python接口提取今日数据
 print('启动百度统计API----')
-shuju_website = {'domain':[],
+shuju_website = {'网站名(domain)':[],
                  '日期':[],
-                 'pv':[],
-                 'uv':[],
-                 'ip':[]}
-qishi = {'domain':[],
+                 'PV':[],
+                 'UV':[],
+                 'IP':[]}
+qishi = {'网站名(domain)':[],
          '日期':[],
          '时间':[],
-         'pv':[],
-         'uv':[],
-         'ip':[]}
+         'PV':[],
+         'UV':[],
+         'IP':[]}
 
 # url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
 # response = requests.get(url_siteid)
@@ -94,55 +94,69 @@ qishi = {'domain':[],
 with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
     dic_website=eval(f.read())
 # 分别获取各网站数据
-app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx')
-sheet1 = book.sheets['网站概况']
-# sheet1.range('A2').clear_contents()
-sheet_qishu = book.sheets['趋势分析']
-# sheet_qishu.range('A2').clear_contents()
+
+# 删除原有的今日数据
+folder_path = r'C:\Users\User\Desktop\SEO'
+# 指定文件名
+file_name = '今日数据(python接口).xlsx'
+# 判断文件是否存在
+file_path = os.path.join(folder_path, file_name)
+if os.path.exists(file_path):
+    os.remove(file_path)
 
 session_web = requests.Session()
-for k in dic_website:
-    url_web = f'https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token={access_token}&site_id={dic_website[k]}&method=overview/getTimeTrendRpt&start_date={start_date}&end_date={end_date}&metrics=pv_count,visitor_count,ip_count'
-    response = session_web.get(url_web)
-    response.encoding='utf8'
-    # 趋势数据
-    for i in range(24):
-        qishi['domain'].append(k)
-        qishi['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
-        qishi['时间'].append(i)
-        qishi['pv'].append(json.loads(response.text)['result']['items'][1][i][0])
-        qishi['uv'].append(json.loads(response.text)['result']['items'][1][i][1])
-        qishi['ip'].append(json.loads(response.text)['result']['items'][1][i][2])
-    result_pv_uv_ip = []
-    # 遍历列表并相加元素
-    for i in range(3):
-        sum = 0
-        for j in range(len(json.loads(response.text)['result']['items'][1])):
-            try:
-                sum += json.loads(response.text)['result']['items'][1][j][i]
-            except:
-                sum +=0
-        result_pv_uv_ip.append(sum)
+def fun_PV_UV_IP():
+    for k in dic_website:
+        url_web = f'https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token={access_token}&site_id={dic_website[k]}&method=overview/getTimeTrendRpt&start_date={start_date}&end_date={end_date}&metrics=pv_count,visitor_count,ip_count'
+        response = session_web.get(url_web)
+        response.encoding='utf8'
+        # 趋势数据
+        for i in range(24):
+            qishi['网站名(domain)'].append(k)
+            qishi['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
+            qishi['时间'].append(i)
+            qishi['PV'].append(json.loads(response.text)['result']['items'][1][i][0])
+            qishi['UV'].append(json.loads(response.text)['result']['items'][1][i][1])
+            qishi['IP'].append(json.loads(response.text)['result']['items'][1][i][2])
+        result_pv_uv_ip = []
+        # 遍历列表并相加元素
+        for i in range(3):
+            sum = 0
+            for j in range(len(json.loads(response.text)['result']['items'][1])):
+                try:
+                    sum += json.loads(response.text)['result']['items'][1][j][i]
+                except:
+                    sum +=0
+            result_pv_uv_ip.append(sum)
 
-    shuju_website['domain'].append(k)
-    shuju_website['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
-    shuju_website['pv'].append(result_pv_uv_ip[0])
-    shuju_website['uv'].append(result_pv_uv_ip[1])
-    shuju_website['ip'].append(result_pv_uv_ip[2])
-    time.sleep(1)
-sheet1.range('A2').options(index=False,header = False).value = pd.DataFrame(shuju_website)
-sheet_qishu.range('A2').options(index=False,header = False).value = pd.DataFrame(qishi)
-book.save()
-app.quit()
-print('今日数据获取完毕！')
+        shuju_website['网站名(domain)'].append(k)
+        shuju_website['日期'].append((datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y/%m/%d'))
+        shuju_website['PV'].append(result_pv_uv_ip[0])
+        shuju_website['UV'].append(result_pv_uv_ip[1])
+        shuju_website['IP'].append(result_pv_uv_ip[2])
+        time.sleep(1)
 
+    writer = pd.ExcelWriter(r'C:\Users\User\Desktop\SEO\今日数据(python接口).xlsx')
+    pd.DataFrame(shuju_website).to_excel(writer, sheet_name='网站概况',index=False)
+    pd.DataFrame(qishi).to_excel(writer, sheet_name='趋势分析',index=False)
+    writer.save()
+    print('今日数据获取完毕！')
+#运行
+fun_PV_UV_IP()
+#判断今日数据是否获取
+for i in range(2):
+    if not os.path.exists(file_path):
+        print(f'第{i+1}次重新获取IP，请再耐心等等。。')
+        fun_PV_UV_IP()
+        time.sleep(30)
+        continue
+    break
 
 # 后续采集会员列表，首充记录、数据处理
 # 读取运行jar包的数据，及历史数据
 print('读取今日数据。。')
-data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx',index_col=0)
-data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\截图文件\今日数据(python接口).xlsx','趋势分析')
+data_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\今日数据(python接口).xlsx',index_col=0)
+data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\今日数据(python接口).xlsx','趋势分析')
 daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','代理总表')
 his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','数据')
 
@@ -521,8 +535,34 @@ header_shuju = pd.DataFrame({'人员':'人员',
 # 写入发送txt文本
 d_zhuanhua = list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"])
 aip = list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"])
+yes_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))]
+yes_data.set_index('人员',inplace=True)
+
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
     f.write(f'#SEO数据  {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}\n')
+    f.write(f'昨日，注册：{shuju.loc["当日汇总","注册"]} ，开户：{shuju.loc["当日汇总","开户"]} ,整体转化率：{shuju.loc["当日汇总","转化率(%)"]}%\n')
+    f.write(f'前天，注册：{yes_data.loc["当日汇总","注册"]} ，开户：{yes_data.loc["当日汇总","开户"]} ,整体转化率：{yes_data.loc["当日汇总","转化率(%)"]*100}%\n')
+    f.write(f'对比，')
+    if shuju.loc['当日汇总','对比昨天(总注册)']>0:
+        f.write(f'注册 上升：{abs(shuju.loc["当日汇总","对比昨天(总注册)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总注册)']<0:
+        f.write(f'注册 下降：{abs(shuju.loc["当日汇总","对比昨天(总注册)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总注册)']==0:
+        f.write(f'注册 无变化')
+    if shuju.loc['当日汇总','对比昨天(总开户)']>0:
+        f.write(f'开户 上升：{abs(shuju.loc["当日汇总","对比昨天(总开户)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总开户)']<0:
+        f.write(f'开户 下降：{abs(shuju.loc["当日汇总","对比昨天(总开户)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总注册)']==0:
+        f.write(f'开户 无变化')
+    if shuju.loc['当日汇总','转化率(%)']-yes_data.loc['当日汇总','转化率(%)']*100>0:
+        f.write(f'转化率 上升：{round(abs(shuju.loc["当日汇总","转化率(%)"]-yes_data.loc["当日汇总","转化率(%)"]*100),2)}%')
+    if shuju.loc['当日汇总','转化率(%)']-yes_data.loc['当日汇总','转化率(%)']*100<0:
+        f.write(f'转化率 下降：{round(abs(shuju.loc["当日汇总","转化率(%)"]-yes_data.loc["当日汇总","转化率(%)"]*100),2)}%')
+    if shuju.loc['当日汇总','转化率(%)']-yes_data.loc['当日汇总','转化率(%)']*100==0:
+        f.write(f'转化率 无变化')
+    f.write('\n')
+    f.write('\n')
     # 转化率
     if len(d_zhuanhua)>0:
         f.write(f'转化率<30%：')
@@ -578,7 +618,7 @@ redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'K{row_shuju +1}:V{row_shuju +10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
-                                                        font=redFill))
+                                                         font=redFill))
 #增加一位小点+%
 # ws['F402'].number_format = '0.0%'
 for i in range(1,11):
@@ -659,11 +699,11 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
 # bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
 # # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
-# bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
-# bot_DA.send_message(-321785338,text,timeout=100)
-# bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
+# bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+# bot_DA.send_message(-677235937,text,timeout=100)
+# bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
 # # bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
-# bot_DA.send_document(-321785338,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
+# bot_DA.send_document(-677235937,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
 # bot_DA.stop_polling()
 # # 查看
 # print(shuju)

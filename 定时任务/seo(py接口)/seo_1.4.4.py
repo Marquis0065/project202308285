@@ -521,8 +521,34 @@ header_shuju = pd.DataFrame({'人员':'人员',
 # 写入发送txt文本
 d_zhuanhua = list(shuju[:-1].loc[shuju["转化率(%)"]<30,:]["人员"])
 aip = list(shuju[:-1].loc[shuju["对比昨天(总IP)"]<0,:]["人员"])
+yes_data = his_data[his_data['日期']==(shuju['日期'][0]+datetime.timedelta(days=-1))]
+yes_data.set_index('人员',inplace=True)
+
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
     f.write(f'#SEO数据  {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}\n')
+    f.write(f'昨日，注册：{shuju.loc["当日汇总","注册"]} ，开户：{shuju.loc["当日汇总","开户"]} ,整体转化率：{shuju.loc["当日汇总","转化率(%)"]}%\n')
+    f.write(f'前天，注册：{yes_data.loc["当日汇总","注册"]} ，开户：{yes_data.loc["当日汇总","开户"]} ,整体转化率：{yes_data.loc["当日汇总","转化率(%)"]*100}%\n')
+    f.write(f'对比，')
+    if shuju.loc['当日汇总','对比昨天(总注册)']>0:
+        f.write(f'注册 上升：{abs(shuju.loc["当日汇总","对比昨天(总注册)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总注册)']<0:
+        f.write(f'注册 下降：{abs(shuju.loc["当日汇总","对比昨天(总注册)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总注册)']==0:
+        f.write(f'注册 无变化')
+    if shuju.loc['当日汇总','对比昨天(总开户)']>0:
+        f.write(f'开户 上升：{abs(shuju.loc["当日汇总","对比昨天(总开户)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总开户)']<0:
+        f.write(f'开户 下降：{abs(shuju.loc["当日汇总","对比昨天(总开户)"])} 个,')
+    if shuju.loc['当日汇总','对比昨天(总注册)']==0:
+        f.write(f'开户 无变化')
+    if shuju.loc['当日汇总','转化率(%)']-yes_data.loc['当日汇总','转化率(%)']*100>0:
+        f.write(f'转化率 上升：{round(abs(shuju.loc["当日汇总","转化率(%)"]-yes_data.loc["当日汇总","转化率(%)"]*100),2)}%')
+    if shuju.loc['当日汇总','转化率(%)']-yes_data.loc['当日汇总','转化率(%)']*100<0:
+        f.write(f'转化率 下降：{round(abs(shuju.loc["当日汇总","转化率(%)"]-yes_data.loc["当日汇总","转化率(%)"]*100),2)}%')
+    if shuju.loc['当日汇总','转化率(%)']-yes_data.loc['当日汇总','转化率(%)']*100==0:
+        f.write(f'转化率 无变化')
+    f.write('\n')
+    f.write('\n')
     # 转化率
     if len(d_zhuanhua)>0:
         f.write(f'转化率<30%：')
@@ -578,7 +604,7 @@ redFill = Font(color='FF0000')
 ws.conditional_formatting.add(f'K{row_shuju +1}:V{row_shuju +10}',
                               formatting.rule.CellIsRule(operator='lessThan',
                                                          formula=['0'],
-                                                        font=redFill))
+                                                         font=redFill))
 #增加一位小点+%
 # ws['F402'].number_format = '0.0%'
 for i in range(1,11):
@@ -657,14 +683,14 @@ app.quit()
 # 发送到群
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
-# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
-# bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
-# bot_DA.send_message(-321785338,text,timeout=100)
-# bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
-# # bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
-# bot_DA.send_document(-321785338,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
-# bot_DA.stop_polling()
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+# bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+bot_DA.send_message(-677235937,text,timeout=100)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
+# bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
+bot_DA.send_document(-677235937,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
+bot_DA.stop_polling()
 # # 查看
 # print(shuju)
 # print(ip_data)

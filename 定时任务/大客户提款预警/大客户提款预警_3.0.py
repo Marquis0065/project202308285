@@ -246,7 +246,7 @@ def job():
 
         for i in obj['data']['list']:
             if (i["coin"] =='CNY') and (i["actualAmount"] ==0) and (i["amount"] >=10000) \
-                    and (i["durationEnd"] == 0) and (i["vipLevel"] > 1) and (now_current - i["createDate"] // 1000 >= 7200):
+                    and (i["durationEnd"] == 0) and (i["vipLevel"] > 5) and (now_current - i["createDate"] // 1000 >= 7200):
                 try:
                     print([i["vipLevel"], i["reallyName"], i['username'], '金额:{}'.format(int(i["amount"])),
                            '风控审核时间：'+str((divmod((now_current * 1000) - i["riskApvTime"], 60000))[0]) + '分钟',
@@ -305,15 +305,15 @@ def job():
         #bot_m.send_message(-677235937, '姓名、账号、提款金额、提款时间已超出60分钟请协助推进！')
         # bot_m.send_message(-677235937, r_fp.read())  -812533282
         # bot_a.send_message(-677235937,text,timeout=1000)
-        bot_a.send_message(-677235937,text,timeout=1000)
+        bot_da.send_message(-953042672,text,timeout=1000)
         #bot_da.send_message(-953042672, '姓名、账号、提款金额、提款时间已超出60分钟请协助推进！')
         # bot_da.send_message(-953042672, text,timeout=1000)
         # bot_da.send_message(6255966584, text,timeout=1000)
         # seo测试群：  -812533282；    提款： -953042672
     else:
         #bot_da.send_message(-677235937, '大客户提款预警当前无数据：'+time.strftime('%H:%M:%S',time.localtime()))
-        bot_a.send_message(6255966584, '当前无数据-IDEA',timeout=1000)
-        bot_a.send_message(6279115720, '当前无数据-IDEA',timeout=1000)
+        bot_da.send_message(6255966584, '当前无数据-IDEA',timeout=1000)
+        bot_da.send_message(6279115720, '当前无数据-IDEA',timeout=1000)
         # print('当前无数据：'+time.strftime('%H:%M:%S',time.localtime()))
         # bot_da.send_message(6255966584, '当前无数据',timeout=1000)
         # bot_da.send_message(6279115720, '当前无数据',timeout=1000)

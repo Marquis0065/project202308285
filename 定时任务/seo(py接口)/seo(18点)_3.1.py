@@ -522,6 +522,7 @@ sheet_shuju['A'+str(row_shuju+1)].options(index=False,header = False).value = sh
 # sheet_ip['A'+str(row_ip+1)].options(index=False,header = False).value = ip_data
 sheet_tem = book.sheets['临时']
 shuju3 = shuju.copy()
+
 shuju3['注册率(%)'] =shuju3['注册率(%)'].apply(lambda x: str(x)+'%')
 shuju3['转化率(%)'] =shuju3['转化率(%)'].apply(lambda x: str(x)+'%')
 sheet_tem['A3'].options(index=False,header = False).value = shuju3
@@ -542,6 +543,11 @@ ws_tem.conditional_formatting.add(f'J3:U12',
                                   formatting.rule.CellIsRule(operator='lessThan',
                                                              formula=['0'],
                                                              font=redFill))
+#增加一位小点+%
+for i in range(1,11):
+    ws_tem[f'G{2 +i}'].number_format = '0.0%'
+    ws_tem[f'I{2 +i}'].number_format = '0.0%'
+
 wb.save(filename=r'C:\Users\User\Desktop\SEO\SEO总表(12点+18点).xlsx')
 wb.close()
 # # 保存截图
@@ -553,6 +559,7 @@ tem_shuju = book2.sheets['临时']
 pyperclip.copy('')
 range_shuju = tem_shuju.range('A1:U12')
 range_shuju.api.CopyPicture()
+time.sleep(2)
 img_shuju = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_shuju.save(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png')  # 保存图片
 # pyperclip.copy('')
@@ -566,11 +573,11 @@ app.quit()
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_18-3.txt','r') as f:
     text = f.read()
 
-bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png','rb'),timeout=300)
-# bot_DA.send_message(-677235937,'#SEO激活监控12点')
-bot_DA.send_message(-677235937,text,timeout=300)
-bot_DA.stop_polling()
+# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+# bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(18h)-3.png','rb'),timeout=300)
+# # bot_DA.send_message(-677235937,'#SEO激活监控12点')
+# bot_DA.send_message(-677235937,text,timeout=300)
+# bot_DA.stop_polling()
 # 查看  -677235937, seo:  -812533282  鲲鹏流量： -321785338
 
 # print('发送完毕。')
