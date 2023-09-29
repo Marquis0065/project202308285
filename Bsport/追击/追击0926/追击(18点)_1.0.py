@@ -1,21 +1,22 @@
 import pandas as pd
 import datetime
 import xlwings as xw
+import hmac, base64, struct, hashlib
 
 pd.set_option('display.max_colwidth', None) #显示单元格完整信息
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
 # 读取会员列表
-member = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0926\会员列表导出.csv',encoding='gbk')
+member = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0928\会员列表导出.csv',encoding='gbk')
 # 读取交易失败列表
-fail_trade = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0926\交易明细报表.csv',encoding='gbk')
+fail_trade = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0928\交易明细报表.csv',encoding='gbk')
 #读取P图诈单
-pitu = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0926\电销追击926.xlsx','P图骗分名单')
+pitu = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0928\P图骗分名单.csv',encoding='gbk')
 #读取既往名单
-pre_member = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0926\电销追击926.xlsx','本月名单汇总')
+pre_member = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0928\电销追击928.xlsx','本月名单汇总')
 #读取代理线
-daili = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0926\电销追击926.xlsx','代理线')
+daili = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0928\电销追击928.xlsx','代理线')
 #去除重复代理线
 daili.drop_duplicates('代理线',inplace = True)
 
@@ -41,25 +42,31 @@ result = result[['会员账号','手机号码','代理','VIP等级','注册时�
 result.insert(0,'提供时间',datetime.datetime.now().strftime('%Y%m%d')+'-18')
 # result['提供时间']= datetime.datetime.now().strftime('%Y%m%d')+'-12'
 # 筛选新增代理线
-result2 = member5.loc[~member5['代理线'].isna(),]
-add_daili = result2.loc[result2['代理线'].str.startswith(('btyseo','btydl','wbdl')),]['代理线']
+result2 = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']=='VIP0')&(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(member5['代理线'].isna()),]
+add_daili = result2.loc[result2['代理'].str.startswith(('btyseo','btydl','wbdl')),]['代理']
 
-# print(result)
+print(result)
+print(result.shape)
+print(add_daili.shape)
+print(add_daili)
 #写入本月工作簿
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(r'C:\Users\User\Desktop\文件\追击\0926\电销追击926.xlsx')
+book = app.books.open(r'C:\Users\User\Desktop\文件\追击\0928\电销追击928.xlsx')
 sheet_daili= book.sheets['代理线']
 row_daili = sheet_daili.used_range.last_cell.row
 
 sheet= book.sheets['本月名单汇总']
 row = sheet.used_range.last_cell.row
 #增加名单
-sheet['A'+str(row+1)].options(index=False,header=False).value = result
+if len(result)>0:
+    sheet['A'+str(row+1)].options(index=False,header=False).value = result
 #增加代理线
-sheet['A'+str(row_daili+1)].options(index=False,header=False).value = add_daili
+if len(add_daili)>0:
+    sheet['A'+str(row_daili+1)].options(index=False,header=False).value = add_daili
 #今日数据(18点)
 curr_sheet = book.sheets['今日名单(18点)']
-curr_sheet['A1'].options(index=False,header=True).value = result
+if len(result)>0:
+    curr_sheet['A1'].options(index=False,header=True).value = result
 book.save()
 book.close()
 app.quit()

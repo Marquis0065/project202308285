@@ -541,7 +541,7 @@ yes_data.set_index('人员',inplace=True)
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','w') as f:
     f.write(f'#SEO数据  {(datetime.datetime.now()+datetime.timedelta(days=day)).strftime("%Y/%m/%d")}\n')
     f.write(f'昨日，注册：{shuju.loc["当日汇总","注册"]} ，开户：{shuju.loc["当日汇总","开户"]} ,整体转化率：{shuju.loc["当日汇总","转化率(%)"]}%\n')
-    f.write(f'前天，注册：{yes_data.loc["当日汇总","注册"]} ，开户：{yes_data.loc["当日汇总","开户"]} ,整体转化率：{yes_data.loc["当日汇总","转化率(%)"]*100}%\n')
+    f.write(f'前天，注册：{yes_data.loc["当日汇总","注册"]} ，开户：{yes_data.loc["当日汇总","开户"]} ,整体转化率：{round(yes_data.loc["当日汇总","转化率(%)"]*100,2)}%\n')
     f.write(f'对比，')
     if shuju.loc['当日汇总','对比昨天(总注册)']>0:
         f.write(f'注册 上升：{abs(shuju.loc["当日汇总","对比昨天(总注册)"])} 个,')

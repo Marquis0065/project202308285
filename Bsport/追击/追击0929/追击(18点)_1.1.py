@@ -1,0 +1,258 @@
+import pandas as pd
+import datetime
+import time
+import xlwings as xw
+import hmac, base64, struct, hashlib
+import requests
+import json
+
+pd.set_option('display.max_colwidth', None) #显示单元格完整信息
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+
+pages_member = 100
+pages_trade = 50
+today_0 = (int(time.time()) - (int(time.time())-time.timezone)%86400)*1000
+today_18 = int(datetime.datetime.combine(datetime.date.today(), datetime.time(18)).timestamp())*1000
+# 第一次获取token
+submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
+header0 = {
+    'Accept':'application/json, text/plain, */*',
+    # 'Accept-Encoding':'gzip, deflate',
+    'Accept-Language':'zh-CN,zh;q=0.9',
+    'Connection':'keep-alive',
+    'Content-Length':'48',
+    'Content-Type':'application/x-www-form-urlencoded',
+    'Cookie':'admin-uid=690; admin-token=db76bebda5274c80adaadd40bd794f24',
+    'Device_id':'1.0',
+    'Gl_version':'2.0',
+    'Host':'fundmng.bsportsadmin.com',
+    'Language':'zh_CN',
+    'Origin':'http://fundmng.bsportsadmin.com',
+    'Os_type':'0',
+    'Referer':'http://fundmng.bsportsadmin.com/login',
+    'Sign':'2bc4c378817f47731f0adf450a627d19',
+    'Some':'header',
+    'Systemid':"",
+    'Timestamp':'1692415901000',
+    'Token':'-1',
+    'Uid':'-1',
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+    'Version':'1.0'
+}
+def get_google_code(secret):
+    key = base64.b32decode(secret, True)
+    msg = struct.pack(">Q", int(time.time()) // 30)
+    google_code = hmac.new(key, msg, hashlib.sha1).digest()
+    # 很多网上的代码不可用，就在于这儿，没有chr字符串
+    o = ord(chr(google_code[19])) & 15
+    # google_code = (struct.unpack(">I", google_code[o:o + 4])[0] & 0x7fffffff) % 1000000
+    google_code = (struct.unpack(">I", google_code[o:o + 4])[0] & 0x7fffffff) % 1000000
+    return '%06d' % google_code
+# 读取会员列表
+# member = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0928\会员列表导出.csv',encoding='gbk')
+# 采集会员列表
+url_member = 'http://fundmng.bsportsadmin.com/api/manage/user/maintain/user/list'
+# 采取token
+google_code = get_google_code('64ehnxj6yily5bhv23kgb62ozuh6yuu2')
+data0 = {
+    'username': 'Marquis',
+    'password': 'qwer123456',
+    'code': google_code
+}
+session0 = requests.Session()
+response0  =session0.post(url=submit_url,data=data0,headers=header0)
+response0.encoding = 'utf-8'
+obj0 = json.loads(response0.text)
+token = obj0['data']['token']
+
+header = {
+    'Accept':'application/json, text/plain, */*',
+    # 'Accept-Encoding':'gzip, deflate',
+    'Accept-Language':'zh-CN,zh;q=0.9',
+    'Connection':'keep-alive',
+    'Content-Length':'75',
+    'Content-Type':'application/x-www-form-urlencoded',
+    'Cookie':'admin-token=67c8b1bd1b434f898ed8570a860355b8; admin-uid=690',
+    'Device_id':'1.0',
+    'Gl_version':'2.0',
+    'Host':'fundmng.bsportsadmin.com',
+    'Language':'zh_CN',
+    'Menuid':'100112',
+    'Opeartionmenu':'%u62A5%u8868%u67E5%u8BE2-%u4F1A%u5458%u9996%u5B58%u62A5%u8868',
+    'Origin':'http://fundmng.bsportsadmin.com',
+    'Os_type':'0',
+    'Referer':'http://fundmng.bsportsadmin.com/system/report-query/report-first-recharge',
+    'Sign':'ca83944852acc68fe114cbc65f1e1d22',
+    'Some':'header',
+    'Systemid':'54',
+    'Timestamp':'1692092554000',
+    'Token':token,
+    'Uid':'690',
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+    'Version':'1.0'
+}
+session = requests.Session()
+dic_user = dict({'会员账号':[], '姓名':[], '手机号码':[],'代理':[], 'VIP等级':[], '注册时间':[],  '状态':[],'备注':[]})
+for page in range(1,pages_member+1):
+    data2 = {
+        'page':page,
+        'size':20,
+        'userVip':'0,1,2,3,4,5,6,7,8,9,10,11',
+        'status':'0,1,2,4',
+        'sortType':'3',
+        'sortStr':'descend',
+        'searchType':'1',
+        'channelId':'34',
+        'registeredStartDate':today_0,
+        'registeredEndDate':today_18,
+    }
+    response2 = session.post(url_member,headers=header,data=data2)
+    response2.encoding = 'utf-8'
+    obj2 = json.loads(response2.text)
+    for i in obj2['data']['list']:
+        dic_user['会员账号'].append(i['username'])
+        if i['reallyName'] !='':
+            dic_user['姓名'].append(i['reallyName'])
+        else:
+            dic_user['姓名'].append('--')
+        dic_user['手机号码'].append(i['telephone'])
+        dic_user['代理'].append(i['parentName'])
+        dic_user['VIP等级'].append(i['vipLevel'])
+        dic_user['注册时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['registerDate']//1000)))
+        dic_user['状态'].append(i['status'])
+        dic_user['备注'].append(i['remark'])
+member = pd.DataFrame(dic_user)
+print('用户列表行列:',member.shape)
+
+
+# 读取交易失败列表
+# fail_trade = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0928\交易明细报表.csv',encoding='gbk')
+#采集交易明细表
+# 重新获取token
+google_code = get_google_code('64ehnxj6yily5bhv23kgb62ozuh6yuu2')
+data0 = {
+    'username': 'Marquis',
+    'password': 'qwer123456',
+    'code': google_code
+}
+session0 = requests.Session()
+response0  =session0.post(url=submit_url,data=data0,headers=header0)
+response0.encoding = 'utf-8'
+obj0 = json.loads(response0.text)
+token = obj0['data']['token']
+
+header = {
+    'Accept':'application/json, text/plain, */*',
+    # 'Accept-Encoding':'gzip, deflate',
+    'Accept-Language':'zh-CN,zh;q=0.9',
+    'Connection':'keep-alive',
+    'Content-Length':'75',
+    'Content-Type':'application/x-www-form-urlencoded',
+    'Cookie':'admin-token=67c8b1bd1b434f898ed8570a860355b8; admin-uid=690',
+    'Device_id':'1.0',
+    'Gl_version':'2.0',
+    'Host':'fundmng.bsportsadmin.com',
+    'Language':'zh_CN',
+    'Menuid':'100112',
+    'Opeartionmenu':'%u62A5%u8868%u67E5%u8BE2-%u4F1A%u5458%u9996%u5B58%u62A5%u8868',
+    'Origin':'http://fundmng.bsportsadmin.com',
+    'Os_type':'0',
+    'Referer':'http://fundmng.bsportsadmin.com/system/report-query/report-first-recharge',
+    'Sign':'ca83944852acc68fe114cbc65f1e1d22',
+    'Some':'header',
+    'Systemid':'54',
+    'Timestamp':'1692092554000',
+    'Token':token,
+    'Uid':'690',
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+    'Version':'1.0'
+}
+url_trade = 'http://fundmng.bsportsadmin.com/api/manage/data/balance/record/list'
+dic_trade = dict({'账户名':[], '状态':[], '操作时间':[],'账变时间':[]})
+for page in range(1,pages_trade+1):
+    data1 = {
+        'page':page,
+        'size':500,
+        'status':'2',
+        'reportType':'0',
+        'userType':'0',
+        'dateType':'0',
+        'startDate':today_0,
+        'endDate':today_18,
+        'type':'1,9'
+    }
+    response1 = session.post(url_trade,headers=header,data=data1)
+    response1.encoding = 'utf-8'
+    obj1 = json.loads(response1.text)
+    for i in obj1['data']['list']:
+        if i['statusStr']=='失败':
+            dic_user['账户名'].append(i['username'])
+            dic_user['状态'].append(i['statusStr'])
+            dic_user['操作时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['transactionDate']//1000)))
+            dic_user['账变时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['balanceChangedDate']//1000)))
+
+fail_trade = pd.DataFrame(dic_trade)
+print('用户列表行列:',fail_trade.shape)
+
+#读取P图诈单
+pitu = pd.read_csv(r'C:\Users\User\Desktop\文件\追击\0928\P图骗分名单.csv',encoding='gbk')
+#读取既往名单
+pre_member = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0928\电销追击928.xlsx','本月名单汇总')
+#读取代理线
+daili = pd.read_excel(r'C:\Users\User\Desktop\文件\追击\0928\电销追击928.xlsx','代理线')
+#去除重复代理线
+daili.drop_duplicates('代理线',inplace = True)
+
+#-----------------------开始处理-----------------------
+member2 = member.merge(pitu['用户名'],left_on='会员账号',right_on='用户名',how='left')
+member2 = member2.rename(columns = {'用户名':'P图骗分'})
+
+fail_trade2 = fail_trade.drop_duplicates('账户名')
+member3 = member2.merge(fail_trade2[['账户名','状态']],left_on='会员账号',right_on='账户名',how='left')
+member3=member3.rename(columns={'状态_x':'状态','状态_y':'提单失败'})
+member3.drop('账户名',axis=1,inplace=True)
+
+
+member4 = member3.merge(daili,left_on='代理',right_on='代理线',how='left')
+
+member5 = member4.merge(pre_member[['会员账号','提供时间']],on='会员账号',how='left')
+member5=member5.rename(columns={'提供时间':'已提供'})
+
+#最终提供名单
+result = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']=='VIP0') \
+                     &(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna()),]
+result = result[['会员账号','手机号码','代理','VIP等级','注册时间','状态']]
+result.insert(0,'提供时间',datetime.datetime.now().strftime('%Y%m%d')+'-18')
+# result['提供时间']= datetime.datetime.now().strftime('%Y%m%d')+'-12'
+# 筛选新增代理线
+result2 = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']=='VIP0')&(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(member5['代理线'].isna()),]
+add_daili = result2.loc[result2['代理'].str.startswith(('btyseo','btydl','wbdl')),]['代理']
+
+print(result)
+print(result.shape)
+print(add_daili.shape)
+print(add_daili)
+#写入本月工作簿
+app = xw.App(visible=False,add_book=False)
+book = app.books.open(r'C:\Users\User\Desktop\文件\追击\0928\电销追击928.xlsx')
+sheet_daili= book.sheets['代理线']
+row_daili = sheet_daili.used_range.last_cell.row
+
+sheet= book.sheets['本月名单汇总']
+row = sheet.used_range.last_cell.row
+#增加名单
+if len(result)>0:
+    sheet['A'+str(row+1)].options(index=False,header=False).value = result
+#增加代理线
+if len(add_daili)>0:
+    sheet['A'+str(row_daili+1)].options(index=False,header=False).value = add_daili
+#今日数据(18点)
+curr_sheet = book.sheets['今日名单(18点)']
+if len(result)>0:
+    curr_sheet['A1'].options(index=False,header=True).value = result
+book.save()
+book.close()
+app.quit()
+
+
