@@ -8,17 +8,20 @@ import json
 import os
 import telebot
 
-pd.set_option('display.max_colwidth', None) #显示单元格完整信息
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_rows', None)
+# pd.set_option('display.max_colwidth', None) #显示单元格完整信息
+# pd.set_option('display.max_columns', None)
+# pd.set_option('display.max_rows', None)
 
-pages_member = 100
-pages_trade = 50
+pages_member = 150
+pages_trade = 200
 pages_p = 50
 ayuang = '47chomf5mzxmkrcw3pf2yftn6s5fg7pa'
 start = int(time.time())
-today_0 = (int(time.time()) - (int(time.time())-time.timezone)%86400)*1000
-today_18 = int(datetime.datetime.combine(datetime.date.today(), datetime.time(18)).timestamp())*1000
+# today_0 = (int(time.time()) - (int(time.time())-time.timezone)%86400)*1000
+# today_18 = int(datetime.datetime.combine(datetime.date.today(), datetime.time(18)).timestamp())*1000
+yesterday = datetime.date.today() + datetime.timedelta(days=-1)
+yesterday_start_time=int(time.mktime(time.strptime(str(yesterday), '%Y-%m-%d')))*1000
+today_12 = int(datetime.datetime.combine(datetime.date.today(), datetime.time(12)).timestamp())*1000
 # 第一次获取token
 submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
 header0 = {
@@ -95,8 +98,8 @@ for page in range(1,pages_member+1):
         'sortStr':'descend',
         'searchType':'1',
         'channelId':'34',
-        'registeredStartDate':today_0,
-        'registeredEndDate':today_18,
+        'registeredStartDate':yesterday_start_time,
+        'registeredEndDate':today_12,
     }
     response2 = session.post(url_member,headers=header_huiyuan,data=data2)
     response2.encoding = 'utf-8'
@@ -154,8 +157,8 @@ for page in range(1,pages_trade+1):
         'reportType':'0',
         'userType':'0',
         'dateType':'0',
-        'startDate':today_0,
-        'endDate':today_18,
+        'startDate':yesterday_start_time,
+        'endDate':today_12,
         'type':'1,9'
     }
     response1 = session.post(url_trade,headers=header_jiaoyi,data=data1)
@@ -163,9 +166,7 @@ for page in range(1,pages_trade+1):
     obj1 = json.loads(response1.text)
     for i in obj1['data']['list']:
         if i['statusStr']=='失败':
-
             dic_trade['账户名'].append(i['username'])
-
             dic_trade['状态'].append(i['statusStr'])
             dic_trade['操作时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['transactionDate']//1000)))
             dic_trade['账变时间'].append(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(i['balanceChangedDate']//1000)))
@@ -261,12 +262,12 @@ member5=member5.rename(columns={'提供时间':'已提供'})
 result = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']==0) \
                      &(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(~member5['代理线'].isna()),]
 result = result[['会员账号','手机号码','代理','VIP等级','注册时间','状态']]
-result.insert(0,'提供时间',datetime.datetime.now().strftime('%Y%m%d')+'-18')
+result.insert(0,'提供时间',datetime.datetime.now().strftime('%Y%m%d')+'-12')
 # result['提供时间']= datetime.datetime.now().strftime('%Y%m%d')+'-12'
+
 # 筛选新增代理线
 result2 = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']=='VIP0')&(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(member5['代理线'].isna()),]
 add_daili = result2.loc[result2['代理'].str.startswith(('btyseo','btydl','wbdl')),]['代理']
-
 
 print(result.shape)
 print('新增代理',add_daili.shape)
@@ -276,18 +277,17 @@ app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\文件\追击\1005\电销追击1005.xlsx')
 sheet_daili= book.sheets['代理线']
 row_daili = sheet_daili.used_range.last_cell.row
-print('代理行：',row_daili)
+
 sheet= book.sheets['本月名单汇总']
 row = sheet.used_range.last_cell.row
-print('数据行：',row)
 #增加名单
 if len(result)>0:
     sheet['A'+str(row+1)].options(index=False,header=False).value = result
 #增加代理线
 if len(add_daili)>0:
     sheet_daili['A'+str(row_daili+1)].options(index=False,header=False).value = add_daili
-#今日数据(18点)
-curr_sheet = book.sheets['今日名单(18点)']
+#今日数据(12点)
+curr_sheet = book.sheets['今日名单(12点)']
 #清空表格
 curr_sheet.clear_contents()
 if len(result)>0:
@@ -295,27 +295,28 @@ if len(result)>0:
 book.save()
 book.close()
 app.quit()
-#保存发送表格-每日18点
-result.to_excel(rf'C:\Users\User\Desktop\文件\追击\每日18点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-18点.xlsx',index=False)
+#保存发送表格-每日12点
+result.to_excel(rf'C:\Users\User\Desktop\文件\追击\每日12点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-12点.xlsx',index=False)
 time.sleep(3)
 #加密
 app = xw.App(visible=False,add_book=False)
-book = app.books.open(rf'C:\Users\User\Desktop\文件\追击\每日18点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-18点.xlsx')
-book.save(rf'C:\Users\User\Desktop\文件\追击\每日18点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-18点.xlsx',password='qwer18')
+book = app.books.open(rf'C:\Users\User\Desktop\文件\追击\每日12点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-12点.xlsx')
+book.save(rf'C:\Users\User\Desktop\文件\追击\每日12点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-12点.xlsx',password='qwer12')
 book.close()
 app.quit()
 #发送
-if os.path.exists(rf'C:\Users\User\Desktop\文件\追击\每日18点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-18点.xlsx'):
+if os.path.exists(rf'C:\Users\User\Desktop\文件\追击\每日12点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-12点.xlsx'):
     bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
-    bot_m.send_document(-677235937,open(rf'C:\Users\User\Desktop\文件\追击\每日18点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-18点.xlsx','rb'),timeout=500)
+    bot_m.send_document(-677235937,open(rf'C:\Users\User\Desktop\文件\追击\每日12点\追击名单_{datetime.datetime.now().strftime("%Y%m%d")}-12点.xlsx','rb'),timeout=500)
     bot_m.stop_polling()
 else:
     bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y")
-    bot_m.send(-677235937,'18点——追击运行失败。。。')
+    bot_m.send_message(-677235937,'12点-追击运行失败。。。')
     bot_m.stop_polling()
 
-# end = int(time.time())
-# print(f'今日新增名单：{len(result)} ')
-# print(f'运行时间： {end-start}s')
+
+end = int(time.time())
+print(f'今日新增数量：{len(result)} ')
+print(f'运行时间： {end-start}s')
 
 

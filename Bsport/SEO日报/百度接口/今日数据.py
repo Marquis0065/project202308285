@@ -7,7 +7,7 @@ import json
 import pandas as pd
 import datetime
 
-day = 0
+day = -1
 access_token = '121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
@@ -33,6 +33,9 @@ jsonpath.jsonpath(json.loads(response.text),'$..domain')
 dic_website = {}
 for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
     dic_website[k]=v
+print(dic_website)
+with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','a') as f:
+    f.write(str(dic_website))
 # with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
 #     dic_website=eval(f.read())
 # 分别获取各网站数据
@@ -72,6 +75,7 @@ for k in dic_website:
 sheet_web.range('A2').options(index=False,header = False).value = pd.DataFrame(shuju)
 sheet_qishu.range('A2').options(index=False,header = False).value = pd.DataFrame(qishi)
 book.save()
+book.close()
 app.quit()
 print(pd.DataFrame(qishi))
 

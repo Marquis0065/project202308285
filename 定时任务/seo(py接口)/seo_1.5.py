@@ -85,14 +85,14 @@ qishi = {'网站名(domain)':[],
          'UV':[],
          'IP':[]}
 
-# url_siteid = 'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token=121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
-# response = requests.get(url_siteid)
-#
-# dic_website = {}
-# for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
-#     dic_website[k]=v
-with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
-    dic_website=eval(f.read())
+url_siteid = f'https://openapi.baidu.com/rest/2.0/tongji/config/getSiteList?access_token={access_token}'
+response = requests.get(url_siteid)
+
+dic_website = {}
+for k,v in zip(jsonpath.jsonpath(json.loads(response.text),'$..domain'),jsonpath.jsonpath(json.loads(response.text),'$..site_id')):
+    dic_website[k]=v
+# with open(r'C:\Users\User\Desktop\SEO\12-18\dic_website.txt','r') as f:
+#     dic_website=eval(f.read())
 # 分别获取各网站数据
 
 # 删除原有的今日数据
@@ -697,14 +697,14 @@ app.quit()
 # 发送到群
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
-# bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-# # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
-# bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
-# bot_DA.send_message(-677235937,text,timeout=100)
-# bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
-# # bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
-# bot_DA.send_document(-677235937,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
-# bot_DA.stop_polling()
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+# bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
+bot_DA.send_message(-677235937,text,timeout=100)
+bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\IP.png','rb'),timeout=100)
+# bot_DA.send_document(-677235937,open(r"C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx",'rb'),timeout=600)
+bot_DA.send_document(-677235937,open(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx','rb'),timeout=600)
+bot_DA.stop_polling()
 # # 查看
 # print(shuju)
 # print(ip_data)
