@@ -1,8 +1,9 @@
-# 会员流失 ，第一次获取token
+# SEO环境： schedule
+import warnings
+warnings.filterwarnings('ignore')
 import requests
 import pandas as pd
 import numpy as np
-import jsonpath
 import json
 import time
 import datetime
@@ -10,18 +11,29 @@ import xlwings as xw
 import telebot
 import hmac, base64, struct, hashlib
 import math
+import threading
+import multiprocessing
+
 
 start = int(time.time())
 
+pd.set_option('display.max_colwidth', None) #显示单元格完整信息
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 
+day = -1
+pages_user = 150
+pages_fircharge = 60
+pages_fircharge_two = 100
+pages_trade = 150
 
-page_list = [
+url_trade ='http://fundmng.bsportsadmin.com/api/manage/data/balance/record/list'
+url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
+url_user = 'http://fundmng.bsportsadmin.com/api/manage/user/maintain/user/list'
+url_huiyuan = 'http://fundmng.bsportsadmin.com/api/manage/data/loss/user/manage/list'  #会员流失
 
-]
-for i in range(0,math.ceil(956377/500),1913//10):
-    page_list.append(i)
-
-
+daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO提单数据\1011\代理线.xlsx')
+# 第一次获取token
 submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
 header0 = {
     'Accept':'application/json, text/plain, */*',
@@ -47,7 +59,6 @@ header0 = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
     'Version':'1.0'
 }
-
 def get_google_code(secret):
     key = base64.b32decode(secret, True)
     msg = struct.pack(">Q", int(time.time()) // 30)
@@ -58,6 +69,9 @@ def get_google_code(secret):
     google_code = (struct.unpack(">I", google_code[o:o + 4])[0] & 0x7fffffff) % 1000000
     return '%06d' % google_code
 
+
+# 采集会员流失统计表
+# token
 data0 = {
     'username': 'Marquis',
     'password': 'qwer123456',
@@ -68,9 +82,7 @@ response0  =session0.post(url=submit_url,data=data0,headers=header0)
 response0.encoding = 'utf-8'
 obj0 = json.loads(response0.text)
 token = obj0['data']['token']
-# 采集会员流失记录
 
-url_huiyuan = 'http://fundmng.bsportsadmin.com/api/manage/data/loss/user/manage/list'
 header = {
     'Device_id':'1.0',
     'Os_type':'0',
@@ -82,27 +94,29 @@ header = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
     'Version':'1.0'
 }
-
 # 总条数
 data_init = {
     'page': 1,
     'size': 20,
     'vipLevel': 0,
     'regStartTime': 1601481600000,
-    'regEndTime': 1798854399999,
+    'regEndTime': int(time.time())*1000,
 }
+#获取会员流失页码
 session = requests.session()
 response = session.post(url=url_huiyuan,data=data_init,headers=header)
 obj_init = json.loads(response.text)
 n_data = obj_init['data']['total']
 print('总条数：',n_data)
-pages = math.ceil(956377/500)
+pages = math.ceil(n_data/500)
 print('总页码：',pages)
 
+page_list = []
+for i in range(0,pages,pages//10):
+    page_list.append(i)
+page_list[10]=pages
 
-
-
-def huiyuan_q_fun(start_page,end_page,):
+def huiyuan_q_fun(start_page,end_page):
     dic_huiyuan = {'会员账号':[],'代理':[],'vip等级':[],'首存时间':[]}
     for page in range(start_page,end_page+1):
         # 获取页码数量
@@ -112,7 +126,7 @@ def huiyuan_q_fun(start_page,end_page,):
             'size': 500,
             'vipLevel': 0,
             'regStartTime': 1601481600000,
-            'regEndTime': 1798854399999,
+            'regEndTime': int(time.time())*1000,
         }
         response = session.post(url=url_huiyuan,data=data,headers=header)
         response.encoding='utf8'
@@ -122,46 +136,21 @@ def huiyuan_q_fun(start_page,end_page,):
             dic_huiyuan['会员账号'].append(i['userName'])
             dic_huiyuan['代理'].append(i['parentName'])
             dic_huiyuan['vip等级'].append(i['vipLevel'])
-            dic_huiyuan['首存时间'].append(i['lastRechargeDate'])
+            dic_huiyuan['首存时间'].append(i['firstTime'])
+    print(pd.DataFrame(dic_huiyuan).shape)
+    return  dic_huiyuan
 
-    trade = pd.DataFrame(dic_huiyuan)
-    print('交易明细表:',trade.shape)
 
-huiyuan_q_fun(1,pages)
-# import multiprocessing
-#
-# q = multiprocessing.Queue()
-#
-#
-# if __name__=='__main__':
-#     jobs = []
-#     for i in range(10):
-#         p = multiprocessing.Process(target=huiyuan_q_fun, args=(page_list[i]+1,page_list[i+1],q))
-#         jobs.append(p)
-#         p.start()
-#     for p in jobs:
-#          p.join()
-#     df= pd.DataFrame(columns=['会员账号','代理','vip等级','首存时间'])
-#     for i in range(10):
-#         print('队列：',i+1)
-#         dic=q.get()
-#         if i ==5:
-#             print(dic)
-#         df=df.append(pd.DataFrame(dic))
-#
-#     print(df.shape)
-#     print('总耗时：',int(time.time())-start,'s')
+#多线程使用
+if __name__ =='__main__':
+    for i in range(10):
+        t1 = threading.Thread()
 
-#
-#
-# with multiprocessing.Pool(processes=10) as pool:
-#     for i in range(10):
-#         pool.starmap(huiyuan_q_fun, (page_list[i]+1,page_list[i+1], q))
-# print(q.maxsize)
-#
-# df= pd.DataFrame()
-# while not q.empty():
-#     tem = pd.DataFrame(q.get())
-#     df = df.append(tem)
+
+
+
+
+
+
 
 

@@ -160,7 +160,7 @@ data_2_today = pd.read_excel(r'C:\Users\User\Desktop\SEO\今日数据(python接�
 daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','代理总表')
 his_data  = pd.read_excel(r'C:\Users\User\Desktop\SEO\数据+ip历史14.xlsx','数据')
 
-# 采集会员列表和会员存记录
+# 采集会员列表和会员首存记录
 url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
 url_user = 'http://fundmng.bsportsadmin.com/api/manage/user/maintain/user/list'
 session = requests.session()
@@ -683,10 +683,17 @@ range_IP = sheet2_ip.range(f'A{row_ip}:P{row_ip+71}')
 #粘贴到发送表格
 range_IP.copy()
 s_sheet2.range('A1:P72').paste()
+time.sleep(1)
 s_book.save(fr'C:\Users\User\Desktop\SEO\SEO输出(9点)\SEO数据_{start_date}.xlsx')
 range_IP.api.CopyPicture()
 img_IP = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
 img_IP.save(r'C:\Users\User\Desktop\SEO\截图文件\IP.png')  # 保存图片
+# 另行保存到输出文件夹
+writer = pd.ExcelWriter(rf'C:\Users\User\Desktop\SEO\SEO输出(9点)\输出文件夹\{start_date}.xlsx')
+shuju[:-1].to_excel(writer,sheet_name='Sheet1',index=False)
+ip_data.to_excel(writer,sheet_name='Sheet2',index=False)
+writer.save()
+writer.close()
 
 time.sleep(2)
 book2.save()

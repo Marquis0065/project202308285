@@ -263,6 +263,8 @@ result = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&
                      &(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(~member5['代理线'].isna()),]
 result = result[['会员账号','手机号码','代理','VIP等级','注册时间','状态']]
 result.insert(0,'提供时间',datetime.datetime.now().strftime('%Y%m%d')+'-12')
+#删除特定代理线
+result.drop(result.loc[result['代理']=='btyscnb0093',].index,inplace=True)
 # result['提供时间']= datetime.datetime.now().strftime('%Y%m%d')+'-12'
 
 # 筛选新增代理线

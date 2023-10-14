@@ -1,4 +1,6 @@
 # 会员流失 ，第一次获取token
+import multiprocessing
+
 import requests
 import pandas as pd
 import numpy as np
@@ -10,16 +12,10 @@ import xlwings as xw
 import telebot
 import hmac, base64, struct, hashlib
 import math
+import warnings
+warnings.filterwarnings('ignore')
 
 start = int(time.time())
-
-
-
-page_list = [
-
-]
-for i in range(0,math.ceil(956377/500),1913//10):
-    page_list.append(i)
 
 
 submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
@@ -82,7 +78,6 @@ header = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
     'Version':'1.0'
 }
-
 # 总条数
 data_init = {
     'page': 1,
@@ -96,13 +91,15 @@ response = session.post(url=url_huiyuan,data=data_init,headers=header)
 obj_init = json.loads(response.text)
 n_data = obj_init['data']['total']
 print('总条数：',n_data)
-pages = math.ceil(956377/500)
+pages = math.ceil(n_data/500)
 print('总页码：',pages)
 
+page_list = []
+for i in range(0,pages,pages//10):
+    page_list.append(i)
+page_list[10]=pages
 
-
-
-def huiyuan_q_fun(start_page,end_page,):
+def huiyuan_q_fun(start_page,end_page):
     dic_huiyuan = {'会员账号':[],'代理':[],'vip等级':[],'首存时间':[]}
     for page in range(start_page,end_page+1):
         # 获取页码数量
@@ -122,12 +119,39 @@ def huiyuan_q_fun(start_page,end_page,):
             dic_huiyuan['会员账号'].append(i['userName'])
             dic_huiyuan['代理'].append(i['parentName'])
             dic_huiyuan['vip等级'].append(i['vipLevel'])
-            dic_huiyuan['首存时间'].append(i['lastRechargeDate'])
+            dic_huiyuan['首存时间'].append(i['firstTime'])
+    print(pd.DataFrame(dic_huiyuan).shape)
+    return  dic_huiyuan
 
-    trade = pd.DataFrame(dic_huiyuan)
-    print('交易明细表:',trade.shape)
 
-huiyuan_q_fun(1,pages)
+
+
+if __name__ == '__main__':
+    huiyuan = pd.DataFrame(columns=['会员账号','代理','vip等级','首存时间'])
+    pool = multiprocessing.Pool(processes=10)
+    #创建进程共享队列
+    result_queue = multiprocessing.Manager().Queue()
+    for i in range(10):
+        pool.apply_async(func=huiyuan_q_fun,args=(page_list[i]+1,page_list[i+1]),
+                         callback=result_queue.put)
+    #关闭进程池
+    pool.close()
+    #进程等待
+    pool.join()
+    #输出数据
+    while not result_queue.empty():
+        dic = result_queue.get()
+        huiyuan=huiyuan.append(pd.DataFrame(dic))
+    print(huiyuan.shape)
+
+    print('耗时：',int(time.time())-start,'s')
+
+
+
+
+
+
+
 # import multiprocessing
 #
 # q = multiprocessing.Queue()

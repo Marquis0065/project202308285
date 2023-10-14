@@ -262,16 +262,18 @@ result = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&
                      &(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(~member5['代理线'].isna()),]
 result = result[['会员账号','手机号码','代理','VIP等级','注册时间','状态']]
 result.insert(0,'提供时间',datetime.datetime.now().strftime('%Y%m%d')+'-18')
+#删除特定代理线
+result.drop(result.loc[result['代理']=='btyscnb0093',].index,inplace=True)
 # result['提供时间']= datetime.datetime.now().strftime('%Y%m%d')+'-12'
 # 筛选新增代理线
-result2 = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']=='VIP0')&(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(member5['代理线'].isna()),]
+result2 = member5.loc[(member5['手机号码'].apply(lambda x: len(str(x)))==11)&(member5['状态']=='正常')&(member5['VIP等级']==0)&(member5['提单失败']=='失败')&(member5['已提供'].isna())&(member5['P图骗分'].isna())&(member5['代理线'].isna()),]
 add_daili = result2.loc[result2['代理'].str.startswith(('btyseo','btydl','wbdl')),]['代理']
 
 
-print(result.shape)
+print(result2)
 print('新增代理',add_daili.shape)
 
-#写入本月工作簿
+# #写入本月工作簿
 app = xw.App(visible=False,add_book=False)
 book = app.books.open(r'C:\Users\User\Desktop\文件\追击\1005\电销追击1005.xlsx')
 sheet_daili= book.sheets['代理线']
@@ -314,8 +316,8 @@ else:
     bot_m.send(-677235937,'18点——追击运行失败。。。')
     bot_m.stop_polling()
 
-# end = int(time.time())
-# print(f'今日新增名单：{len(result)} ')
-# print(f'运行时间： {end-start}s')
+end = int(time.time())
+print(f'今日新增名单：{len(result)} ')
+print(f'运行时间： {end-start}s')
 
 
