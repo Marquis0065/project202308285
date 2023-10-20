@@ -12,7 +12,7 @@ import telebot
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
 
-pages_member = 150
+pages_member = 200
 pages_trade = 200
 pages_p = 50
 ayuang = '47chomf5mzxmkrcw3pf2yftn6s5fg7pa'

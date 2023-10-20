@@ -353,10 +353,22 @@ try:
     shuju.loc['Aber','接受IP']=data_today.loc['aber.bty','IP']
 except:
     shuju.loc['Aber','接受IP']=0
-shuju.loc['DK','发送IP']=data_today.loc['dk.com','IP']
-shuju.loc['DK','接受IP']=data_today.loc['dk.bty','IP']
-shuju.loc['Ben','发送IP']=data_today.loc['ben.com','IP']
-shuju.loc['Ben','接受IP']=data_today.loc['ben.bty','IP']
+try:
+    shuju.loc['DK','发送IP']=data_today.loc['dk.com','IP']
+except:
+    shuju.loc['DK', '发送IP'] =0
+try:
+    shuju.loc['DK','接受IP']=data_today.loc['dk.bty','IP']
+except:
+    shuju.loc['DK', '接受IP'] =0
+try:
+    shuju.loc['Ben','发送IP']=data_today.loc['ben.com','IP']
+except:
+    shuju.loc['Ben', '发送IP'] =0
+try:
+    shuju.loc['Ben','接受IP']=data_today.loc['ben.bty','IP']
+except:
+    shuju.loc['Ben', '接受IP'] =0
 shuju.loc['当日汇总','发送IP']=shuju['发送IP'].sum()
 shuju.loc['当日汇总','接受IP']=shuju['接受IP'].sum()
 
@@ -704,7 +716,7 @@ app.quit()
 # 发送到群
 with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_全天.txt','r') as f:
     text = f.read()
-bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
+bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")   # 小分队：-4011117804
 # bot_m = telebot.TeleBot("6377312623:AAGz3ZSMVswWq0QVlihRPklw8b7skSBP16Y") -812533282  -677235937  "鲲鹏": -321785338
 bot_DA.send_photo(-677235937,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju.png','rb'),timeout=100)
 bot_DA.send_message(-677235937,text,timeout=100)

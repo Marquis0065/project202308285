@@ -26,7 +26,9 @@ day = 0
 pages_user = 150
 pages_fircharge = 60
 # access_token ='121.1e832791a57b87542b2bb51e2f3f5bfa.Y_Uhf0W55kh6mBiTGZX0qWg0O5ZqJYZmPyHTqi8.HEyD3w'
+# access_token = '121.3b699a76ba3f0e0a1a920e929e0be12a.Y__S7vw4TPZXbg-CvtT5SKdFTIijP7cBKPrRQdw.F4UX0w'
 access_token = '121.c82113f69d59528dd7e12f3b0ee3e346.YQAvgTamSKbi2t4W141tGfcupFPVHO_Lu78VwBO.wVNPjQ'  # 11月 11日到期
+
 
 start_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
 end_date = (datetime.datetime.now()+datetime.timedelta(days=day)).strftime('%Y%m%d')
@@ -257,7 +259,7 @@ user = pd.DataFrame(dic_user)
 print('用户列表行列:',user.shape)
 # 删除测试账号
 user = user[~user['会员账号'].str.contains('test')&~user['会员账号'].str.contains('ceshi')&~user['姓名'].str.contains('测试') \
-            &~user['姓名'].str.contains('ceshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('ceshi') \
+            &~user['姓名'].str.contains('cheshi')&~user['代理'].str.contains('测试')&~user['代理'].str.contains('cheshi') \
             &~user['备注'].str.contains('测试')&~user['备注'].str.contains('试玩')&~user['备注'].str.contains('晒单')]
 print('去重后：',user.shape)
 
@@ -480,10 +482,18 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12-3.txt','w') as f:
     if d_zhuanhua>0:
         f.write(f'转化率 上升：{abs(d_zhuanhua)}%')
     if d_zhuanhua<0:
-        f.write(f'开户 下降：{abs(d_zhuanhua)}%')
+        f.write(f'转化率 下降：{abs(d_zhuanhua)}%')
     if d_zhuanhua==0:
         f.write(f'转化率 无变化')
     f.write('\n')
+    f.write('\n')
+    f.write('人员注册下降：\n')
+    for i in list(shuju[:-1].loc[shuju[:-1]['对比昨天(总注册)']<0,]['人员']):
+        f.write(f'{i} : {abs(shuju[:-1].loc[i,"对比昨天(总注册)"])}\n')
+    f.write('\n')
+    f.write('人员开户下降：\n')
+    for i in list(shuju[:-1].loc[shuju[:-1]['对比昨天(总开户)']<0,]['人员']):
+        f.write(f'{i} : {abs(shuju[:-1].loc[i,"对比昨天(总开户)"])}\n')
     f.write('\n')
     f.write(f'对比前7天均值明显下降:\n')
     if len(aip_7)>0:
@@ -575,9 +585,9 @@ with open(r'C:\Users\User\Desktop\SEO\截图文件\seo_12-3.txt','r') as f:
     text = f.read()
 
 bot_DA = telebot.TeleBot("6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0")
-bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-3.png','rb'),timeout=300)
-# bot_DA.send_message(-677235937,'#SEO激活监控12点')  "鲲鹏": -321785338
-bot_DA.send_message(-321785338,text,timeout=300)
+bot_DA.send_photo(-321785338,open(r'C:\Users\User\Desktop\SEO\截图文件\shuju(12h)-3.png','rb'),timeout=100)
+# bot_DA.send_message(-677235937,'#SEO激活监控12点')  "鲲鹏": -321785338      -677235937
+bot_DA.send_message(-321785338,text,timeout=100)
 bot_DA.stop_polling()
 # 查看
 # print(shuju)

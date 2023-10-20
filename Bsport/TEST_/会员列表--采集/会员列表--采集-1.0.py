@@ -23,18 +23,9 @@ pd.set_option('display.max_colwidth', None) #显示单元格完整信息
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
-day = -1
-pages_user = 150
-pages_fircharge = 60
-pages_fircharge_two = 100
-pages_trade = 150
 
-url_trade ='http://fundmng.bsportsadmin.com/api/manage/data/balance/record/list'
-url_fircharge = 'http://fundmng.bsportsadmin.com/api/manage/data/detail/firstRecharge'
-url_user = 'http://fundmng.bsportsadmin.com/api/manage/user/maintain/user/list'
-url_huiyuan = 'http://fundmng.bsportsadmin.com/api/manage/data/loss/user/manage/list'  #会员流失
+url_huiyuan = 'http://fundmng.bsportsadmin.com/api/manage/user/maintain/user/list'  #会员列表
 
-daili = pd.read_excel(r'C:\Users\User\Desktop\SEO\SEO提单数据\1011\代理线.xlsx')
 # 第一次获取token
 submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
 header0 = {
@@ -71,7 +62,6 @@ def get_google_code(secret):
     google_code = (struct.unpack(">I", google_code[o:o + 4])[0] & 0x7fffffff) % 1000000
     return '%06d' % google_code
 
-
 # 采集会员流失统计表
 # token
 data0 = {
@@ -88,9 +78,9 @@ token = obj0['data']['token']
 header = {
     'Device_id':'1.0',
     'Os_type':'0',
-    'Referer':'http://fundmng.bsportsadmin.com/system/statistics/member-loss',
-    'Sign':'6f518a02e3479ecaaf4ec58b3e5b3878',
-    'Timestamp':'1697073050000',
+    'Referer':'http://fundmng.bsportsadmin.com/system/user-management/member-list',
+    'Sign':'59951b8ae1578a128acea9b581dbe79e',
+    'Timestamp':'1697351079000',
     'Token':token,
     'Uid':'690',
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
@@ -98,37 +88,47 @@ header = {
 }
 # 总条数
 data_init = {
-    'page': 1,
-    'size': 20,
-    'vipLevel': 0,
-    'regStartTime': 1601481600000,
-    'regEndTime': int(time.time())*1000,
+    'page':1,
+    'size':20,
+    'userVip':'0,1,2,3,4,5,6,7,8,9,10,11',
+    'status':'0,1,2,4',
+    'sortType':'3',
+    'sortStr':'descend',
+    'searchType':'1',
+    'channelId':'34',
+    'registeredStartDate':1601481600000,
+    'registeredEndDate':int(time.time())*1000
 }
 #获取会员流失页码
 session = requests.session()
 response = session.post(url=url_huiyuan,data=data_init,headers=header)
 obj_init = json.loads(response.text)
 n_data = obj_init['data']['total']
-print('总条数：',n_data)
+print('会员总条数：',n_data)
 pages = math.ceil(n_data/500)
-print('总页码：',pages)
+print('会员列表总页码：',pages)
 
 page_list = []
 for i in range(0,pages,pages//10):
     page_list.append(i)
 page_list[10]=pages
 
-def huiyuan_q_fun(start_page,end_page,q):
-    dic_huiyuan = {'会员账号':[],'代理':[],'vip等级':[],'首存时间':[]}
+def huiyuan_q_fun(start_page,end_page):
+    dic_huiyuan = {'会员账号':[],'代理':[],'电话':[],'vip等级':[],'注册时间':[],'注册地':[]}
     for page in range(start_page,end_page+1):
         # 获取页码数量
         print(f'第{page}页。。。')
         data = {
-            'page': page,
-            'size': 500,
-            'vipLevel': 0,
-            'regStartTime': 1601481600000,
-            'regEndTime': int(time.time())*1000,
+            'page':page,
+            'size':500,
+            'userVip':'0,1,2,3,4,5,6,7,8,9,10,11',
+            'status':'0,1,2,4',
+            'sortType':'3',
+            'sortStr':'descend',
+            'searchType':'1',
+            'channelId':'34',
+            'registeredStartDate':1601481600000,
+            'registeredEndDate':int(time.time())*1000
         }
         response = session.post(url=url_huiyuan,data=data,headers=header)
         response.encoding='utf8'
@@ -137,32 +137,34 @@ def huiyuan_q_fun(start_page,end_page,q):
         for i in obj['data']['dataList']:
             dic_huiyuan['会员账号'].append(i['userName'])
             dic_huiyuan['代理'].append(i['parentName'])
+            dic_huiyuan['电话'].append(i['telephone'])
             dic_huiyuan['vip等级'].append(i['vipLevel'])
-            dic_huiyuan['首存时间'].append(i['firstTime'])
+            dic_huiyuan['注册时间'].append(i['registerDate'])
+            dic_huiyuan['注册地'].append(i['registerIpLocation'])
+
     print(pd.DataFrame(dic_huiyuan).shape)
-    q.put(dic_huiyuan)
     return  dic_huiyuan
 
 
 #多线程使用
 if __name__ =='__main__':
 
-    q = queue.Queue()
-    huiyuan = pd.DataFrame(columns=['会员账号','代理','vip等级','首存时间'])
+    huiyuan = pd.DataFrame(columns=['会员账号','代理','电话','vip等级','注册时间','注册地'])
 
-    with concurrent.futures.ThreadPoolExecutor(10) as executor:
-        future = executor.submit(huiyuan_q_fun,[(page_list[0]+1,page_list[i+1],q) for i in range(10)])
-    # job = []
-    # for i in range(10):
-    #     t = threading.Thread(huiyuan_q_fun(page_list[0]+1,page_list[i+1],q))
-    #     t.start()
-    #     job.append(t)
-    #     print(f'启动线程：{i}')
-    # for j in job:
-    #     j.join()
+    pool = multiprocessing.Pool(processes=10)
+    #创建进程共享队列
+    result_queue = multiprocessing.Manager().Queue()
+    for i in range(10):
+        pool.apply_async(func=huiyuan_q_fun,args=(page_list[i]+1,page_list[i+1]),
+                         callback=result_queue.put)
+    #关闭进程池
+    pool.close()
+    #进程等待
+    pool.join()
 
-    while not q.empty():
-        huiyuan=huiyuan.append(pd.DataFrame(q.get()))
+
+    while not result_queue.empty():
+        huiyuan=huiyuan.append(pd.DataFrame(result_queue.get()))
 
     print(huiyuan.shape)
     print('主线程运行完成。。')
