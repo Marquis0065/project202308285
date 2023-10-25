@@ -10,6 +10,28 @@ import telebot
 import hmac, base64, struct, hashlib
 import platform
 
+dic_chartype= {'CNY_支付宝':['支付宝支付', '支付宝转账', '支付宝H5', '支付宝红包', '极速支付宝', '支付宝扫码', '支付宝转卡'],
+               'CNY_微信':['微信支付', '微信转账', '微信扫码', '微信红包', '微信H5', '微信小店', '极速微信', '微信转卡'],
+               'CNY_其他第三方':['QQ支付','京东支付','云闪付转账',
+                                 '云闪付','充值卡支付','数字人民币','极速QQ','云闪付转卡','极速零钱','钉钉红包','QQ红包','综合支付','京东E卡'],
+               'CNY_网银':['网银支付', '银联扫码支付', '网银转账', '银联快捷', '手机银行', '银行卡直充', '人民币直充'],
+               'CNY_银行卡':['银行卡转账', '银行卡转卡', '银行卡支付'],
+               'CNY_虚拟币':['EB_Pay', 'TO_Pay', '虚拟币支付'],
+               'VND_银行卡':['越南Bank_online', '越南Local_bank', '越南银行转账'],
+               'VND_第三方':['越南Momo_pay', '越南Zalo_pay', '越南Qr_pay', '越南Viettel_Pay'],
+               'MYR_银行卡':['马来西亚_银行转账', '马来西亚Bank_online'],
+               'THB_银行卡':['泰国_银行转账', '泰国Bank_online'],
+               'THB_第三方':['泰国PROMPT_PAY', '泰国TRUE_MONEY', '泰国RABBIT_LINE_PAY'],
+               'BRL_银行卡':['巴西_银行卡转账', '巴西_网银支付'],
+               'BRL_第三方':['巴西PIX_Pay'],
+               'EGP_银行卡':['埃及_银行卡转账', '埃及Bank_online']}
+
+paymentID = '1,2,3,4,5,6,7,8,9,10,11,24,25,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,1000,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012,2000,2001,2002,2003,2004,2005,2006,3000,3001,4000,4001,4002,4003,4004,8000,8001,8002,10000,10001'.split(',')
+chongchi = pd.read_excel(r'C:\Users\User\Desktop\文件\定时任务\充值拉单\充值拉单监控群分类大项2.xlsx','Sheet2')
+dic_chongchi = {}
+for i ,j in zip(paymentID,chongchi['充值方式'].tolist()):
+    dic_chongchi[i]=j
+
 
 # google验证码函数
 submit_url = 'http://fundmng.bsportsadmin.com/api/manage/user/admin/login/submit'
@@ -164,8 +186,8 @@ def job():
         'Version': '1.0'
     }
     session  = requests.Session()
-    dic0 = {'充值日期':"createDate",'充值单号':"orderId",'用户层级':"userLevel",'账户名':"username",'姓名':"reallyName",'VIP等级':"vipLevel",'充值金额':"amount",'到账金额':"payAmount"}
-    dic = {'充值日期':[],'充值单号':[],'用户层级':[],'账户名':[],'姓名':[],'VIP等级':[],'充值金额':[],'到账金额':[]}
+    dic0 = {'充值日期':"createDate",'充值单号':"orderId",'用户层级':"userLevel",'账户名':"username",'姓名':"reallyName",'VIP等级':"vipLevel",'充值金额':"amount",'到账金额':"payAmount",'充值方式':"paymentId"}
+    dic = {'充值日期':[],'充值单号':[],'用户层级':[],'账户名':[],'姓名':[],'VIP等级':[],'充值金额':[],'到账金额':[],'充值方式':[]}
     fw = open('result-912.txt','w')
     # 重新获取页码
     data_sec = {
@@ -213,10 +235,17 @@ def job():
     df2 = pd.DataFrame(dic)
     df2.insert(1,'时间',df2['充值日期'].map(lambda x:time.strftime("%H:%M")))
     df2['充值日期']= df2['充值日期'].map(lambda x:time.strftime("%Y-%m-%d"))
+    #处理充值方式
+    df2['充值方式2']= df2['充值方式'].astype(str).map(dic_chongchi)
+    for i in df2['充值方式2']:
+        for k in dic_chartype:
+            if i in dic_chartype[k]:
+                df2.loc[df2['充值方式2']==i,'充值方式3']=k
 
-    result2 = df2.groupby('账户名').agg({'账户名':len,'充值金额':[np.max,np.mean],'VIP等级':np.mean})
+
+    result2 = df2.groupby('账户名').agg({'账户名':len,'充值金额':[np.max,np.mean],'VIP等级':np.mean,'充值方式3':set})
     result2.reset_index(inplace=True)
-    result2 = pd.DataFrame({'账户名':result2.iloc[:,0],'数量':result2.iloc[:,1],'最大金额':result2.iloc[:,2],'平均金额':result2.iloc[:,3],'VIP等级':result2.iloc[:,4]})
+    result2 = pd.DataFrame({'账户名':result2.iloc[:,0],'数量':result2.iloc[:,1],'最大金额':result2.iloc[:,2],'平均金额':result2.iloc[:,3],'VIP等级':result2.iloc[:,4],'分类':result2.iloc[:,5]})
 
     result2.set_index('账户名',inplace=True)
     result2 = result2.loc[result2['数量']>3,:]
@@ -313,6 +342,14 @@ def job():
                 fw.write(f'账号：{" "}{user}\n')
                 fw.write(f'上级代理：{" "}{result2.loc[user,"上级代理"]}\n')
                 fw.write(f'小组：{" "}{result2.loc[user,"小组"]}\n')
+                fw.write(f'充值方式：')
+                for i in list(result2.loc[user,"分类"]):
+                    fw.write(i)
+                    if len(result2.loc[user,"分类"])>1:
+                        if i != list(result2.loc[user,"分类"])[-1]:
+                            fw.write(' ,\n')
+                            fw.write(f'{"           "}')
+                fw.write('\n')
                 fw.write(f'最大充值金额：{result2.loc[user,"最大金额"]}\n')
                 fw.write(f'平均充值金额：{result2.loc[user,"平均金额"]}\n')
                 fw.write(f'2小时内申请次数：{result2.loc[user,"数量"]}\n')
@@ -325,6 +362,16 @@ def job():
             fw.write(f'账号：{" "}{user}\n')
             fw.write(f'上级代理：{" "}{result2.loc[user,"上级代理"]}\n')
             fw.write(f'小组：{" "}{result2.loc[user,"小组"]}\n')
+            fw.write(f'充值方式：')
+            for i in list(result2.loc[user,"分类"]):
+                fw.write(i)
+                if len(result2.loc[user,"分类"])>1:
+                    if i != list(result2.loc[user,"分类"])[-1]:
+                        fw.write(' ,\n')
+                        fw.write(f'{"           "}')
+
+
+            fw.write('\n')
             fw.write(f'最大充值金额：{result2.loc[user,"最大金额"]}\n')
             fw.write(f'平均充值金额：{result2.loc[user,"平均金额"]}\n')
             fw.write(f'2小时内申请次数：{result2.loc[user,"数量"]}\n')
@@ -340,7 +387,7 @@ def job():
     global num_
     if sum_>0:
         num_ += 1
-        fw.write(f'总计：,{sum_}\n')
+        fw.write(f'总计：{sum_}\n')
         fw.write(f'发送次数：{num_}\n')
         fw.close()
         with open('result-912.txt','r') as fr:
@@ -353,7 +400,7 @@ def job():
         bot_da.stop_polling()
     else:
         bot_da = telebot.TeleBot('6106076754:AAHjxPSBpyjwpY-lq1iEslUufW46XQvAfr0')
-        bot_da.send_message(6279115720,'----1.3.2-----充值拉单')
+        bot_da.send_message(6279115720,'----1.3.4-idea----充值拉单')
         bot_da.stop_polling()
 
 while 1:

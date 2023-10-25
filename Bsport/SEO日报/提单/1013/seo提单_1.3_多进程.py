@@ -112,8 +112,9 @@ print('总页码：',pages)
 page_list = []
 for i in range(0,pages,pages//10):
     page_list.append(i)
-page_list[10]=pages
-
+print(page_list)
+page_list[len(page_list)-1]=pages
+print(page_list)
 def huiyuan_q_fun(start_page,end_page):
     dic_huiyuan = {'会员账号':[],'代理':[],'vip等级':[],'首存时间':[]}
     for page in range(start_page,end_page+1):
@@ -140,10 +141,10 @@ def huiyuan_q_fun(start_page,end_page):
 
 if __name__ == '__main__':
     huiyuan = pd.DataFrame(columns=['会员账号','代理','vip等级','首存时间'])
-    pool = multiprocessing.Pool(processes=10)
+    pool = multiprocessing.Pool(processes=len(page_list)-1)
     #创建进程共享队列
     result_queue = multiprocessing.Manager().Queue()
-    for i in range(10):
+    for i in range(len(page_list)-1):
         pool.apply_async(func=huiyuan_q_fun,args=(page_list[i]+1,page_list[i+1]),
                          callback=result_queue.put)
     #关闭进程池
@@ -453,15 +454,15 @@ if __name__ == '__main__':
     print(shuju)
 
     # 保存数据
-    # app = xw.App(visible=False,add_book=False)
-    # book =app.books.open(r'C:\Users\User\Desktop\SEO\SEO提单数据\1011\SEO数据-每日.xlsx')
-    # sheet = book.sheets['总表']
-    # row = sheet.used_range.last_cell.row
-    # sheet['A'+str(row+1)].options(index=False,header=False).value = shuju
-    # book.save()
-    # time.sleep(2)
-    # book.close()
-    # app.quit()
+    app = xw.App(visible=False,add_book=False)
+    book =app.books.open(r'C:\Users\User\Desktop\SEO\SEO提单数据\1011\SEO数据-每日.xlsx')
+    sheet = book.sheets['总表']
+    row = sheet.used_range.last_cell.row
+    sheet['A'+str(row+1)].options(index=False,header=False).value = shuju
+    book.save()
+    time.sleep(2)
+    book.close()
+    app.quit()
 
     print('已保存,主进程结束')
     print('耗时：',int(time.time())-start,'s')
